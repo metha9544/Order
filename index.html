@@ -7,7 +7,7 @@
 
 <style>
   body {
-    font-family: sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #fff6f8;
     padding: 15px;
     color: #5a3d45;
@@ -141,7 +141,7 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
 
-  .switch, .delete {
+  .switch, .delete, .receipt-btn {
     margin-top: 10px;
     padding: 10px 14px;
     border: none;
@@ -151,6 +151,67 @@
   }
   .delete { background: #f08080; color: #fff; }
   .switch { background: #eee; }
+  .receipt-btn { background: #ffc2d1; color: #5a3d45; }
+
+  /* --- Receipt Modal Style --- */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+  }
+
+  .receipt-container {
+    background-color: white;
+    width: 90%;
+    max-width: 350px;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 25px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+
+  .receipt-border {
+    border: 2px dashed #f3a6b8;
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .receipt-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; display: block; }
+  .receipt-header { font-size: 1.5rem; color: #d48398; margin-bottom: 5px; }
+  .receipt-sub { color: #bca0a0; font-size: 0.9rem; margin-bottom: 10px; }
+  .receipt-date { font-size: 0.9rem; margin-bottom: 15px; color: #666; }
+  
+  .receipt-details {
+    text-align: left;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin: 15px 0;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+  }
+
+  .qr-code {
+    width: 150px;
+    margin: 15px auto;
+    display: block;
+  }
+
+  .close-modal {
+    margin-top: 15px;
+    background: #5a3d45;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 </style>
 </head>
 
@@ -197,6 +258,26 @@
 
 <h2 id="order-count-title" style="margin-top:40px">📋 รายการออเดอร์</h2>
 <div id="orders"></div>
+
+<div id="receiptModal" class="modal">
+  <div class="receipt-container">
+    <span class="receipt-title">ใบเสร็จ</span>
+    <div class="receipt-border">
+      <div class="receipt-header">🌸 METIST ✨</div>
+      <div class="receipt-sub">FLOWER & LUCK</div>
+      <div class="receipt-date" id="rc-date">วันที่: -</div>
+      
+      <div class="receipt-details" id="rc-details">
+        </div>
+      
+      <div style="font-weight: bold; margin: 10px 0;">สแกนเพื่อชำระเงิน</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PromptPay" alt="QR Code" class="qr-code">
+      
+      <div style="font-size: 0.8rem; color: #888;">ขอบคุณที่อุดหนุน 💐</div>
+    </div>
+    <button class="close-modal" onclick="closeReceipt()">ปิดหน้าต่าง</button>
+  </div>
+</div>
 
 <script>
 const colors = {
@@ -281,7 +362,8 @@ function saveOrder() {
     extras: { ...extras },
     total: document.getElementById("summary").innerText,
     status: false,
-    paid: false
+    paid: false,
+    date: new Date().toLocaleDateString('th-TH')
   });
   localStorage.metist = JSON.stringify(orders);
   location.reload();
@@ -289,11 +371,8 @@ function saveOrder() {
 
 function show() {
   let o = JSON.parse(localStorage.metist || "[]");
-  
-  // ส่วนที่เพิ่ม: นับออเดอร์ที่ยังไม่เตรียม (status === false)
   let pendingCount = o.filter(item => item.status === false).length;
   document.getElementById("order-count-title").innerHTML = `📋 รายการออเดอร์ <span style="font-size: 0.9rem; font-weight: normal; color: #888;">(รอดำเนินการ : ${pendingCount} ออเดอร์)</span>`;
-
 
   let displayOrders = [...o].reverse(); 
 
@@ -320,9 +399,42 @@ function show() {
       <b style="color:#00000; font-size:1rem">${d.total}</b><br>
       <button class="switch" onclick="toggleStatus(${realIndex})">${d.status ? "✅ เตรียมแล้ว" : "⏳ รอดำเนินการ"}</button>
       <button class="switch" onclick="togglePaid(${realIndex})">${d.paid ? "💳 จ่ายแล้ว" : "❌ ยังไม่จ่าย"}</button>
+      <button class="receipt-btn" onclick="openReceipt(${realIndex})">🧾 ใบเสร็จ</button>
       <button class="delete" onclick="deleteOrder(${realIndex})">🗑️ ลบ</button>
     </div>
   `}).join("");
+}
+
+// ฟังก์ชันแสดงใบเสร็จ
+function openReceipt(index) {
+  const o = JSON.parse(localStorage.metist);
+  const d = o[index];
+  
+  let flowerText = [];
+  for (let type in d.flowers) {
+    for (let color in d.flowers[type]) {
+      let count = d.flowers[type][color];
+      if (count > 0) {
+        flowerText.push(`${color}${type === "กริตเตอร์" ? "(กริตเตอร์)" : ""}${count}`);
+      }
+    }
+  }
+
+  document.getElementById("rc-date").innerText = "วันที่: " + (d.date || new Date().toLocaleDateString('th-TH'));
+  document.getElementById("rc-details").innerHTML = `
+    👤 <b>ลูกค้า:</b> ${d.name || "เวฟ"}<br>
+    🌹 <b>สีดอก:</b> ${flowerText.join(", ") || "-"}<br>
+    📦 <b>กระดาษห่อ:</b> ${d.paper || "-"}<br>
+    🎀 <b>โบว์:</b> ${d.bow || "-"}<br>
+    ✨ <b>ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0]).join(", ") || "-"}<br><br>
+    <b style="font-size: 1.1rem;">${d.total}</b>
+  `;
+  
+  document.getElementById("receiptModal").style.display = "block";
+}
+
+function closeReceipt() {
+  document.getElementById("receiptModal").style.display = "none";
 }
 
 function deleteOrder(i){ if(confirm("ลบออเดอร์นี้?")){ let o=JSON.parse(localStorage.metist); o.splice(i,1); localStorage.metist=JSON.stringify(o); show(); } }
