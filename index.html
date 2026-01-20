@@ -164,8 +164,8 @@
   <h2>🌹 สีดอกไม้</h2>
   
   <div class="type-selector">
-    <label><input type="radio" name="flowerType" value="พื้น" checked> สีพื้น</label>
-    <label><input type="radio" name="flowerType" value="กริตเตอร์"> สีกริตเตอร์</label>
+    <label><input type="radio" name="flowerType" value="กริตเตอร์" checked> สีกริตเตอร์</label>
+    <label><input type="radio" name="flowerType" value="พื้น"> สีพื้น</label>
   </div>
 
   <div class="buttons" id="flowers"></div>
@@ -290,7 +290,13 @@ function saveOrder() {
 
 function show() {
   let o = JSON.parse(localStorage.metist || "[]");
-  document.getElementById("orders").innerHTML = o.map((d, i) => {
+  // ใช้ .reverse() เพื่อให้อันใหม่ล่าสุดขึ้นก่อน
+  let displayOrders = [...o].reverse(); 
+
+  document.getElementById("orders").innerHTML = displayOrders.map((d, i) => {
+    // คำนวณหา Index จริงใน Array ต้นฉบับ (เพราะเรา reverse มา)
+    let realIndex = o.length - 1 - i;
+    
     let flowerText = [];
     for (let type in d.flowers) {
       for (let color in d.flowers[type]) {
@@ -309,12 +315,13 @@ function show() {
       <b>🎀 โบว์:</b> ${d.bow || "-"}<br>
       <b>✨ ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
       <b style="color:#00000; font-size:1rem">${d.total}</b><br>
-      <button class="switch" onclick="toggleStatus(${i})">${d.status ? "✅ เตรียมแล้ว" : "⏳ รอดำเนินการ"}</button>
-      <button class="switch" onclick="togglePaid(${i})">${d.paid ? "💳 จ่ายแล้ว" : "❌ ยังไม่จ่าย"}</button>
-      <button class="delete" onclick="deleteOrder(${i})">🗑️ ลบ</button>
+      <button class="switch" onclick="toggleStatus(${realIndex})">${d.status ? "✅ เตรียมแล้ว" : "⏳ รอดำเนินการ"}</button>
+      <button class="switch" onclick="togglePaid(${realIndex})">${d.paid ? "💳 จ่ายแล้ว" : "❌ ยังไม่จ่าย"}</button>
+      <button class="delete" onclick="deleteOrder(${realIndex})">🗑️ ลบ</button>
     </div>
   `}).join("");
 }
+
 
 function deleteOrder(i){ if(confirm("ลบออเดอร์นี้?")){ let o=JSON.parse(localStorage.metist); o.splice(i,1); localStorage.metist=JSON.stringify(o); show(); } }
 function toggleStatus(i){ let o=JSON.parse(localStorage.metist); o[i].status=!o[i].status; localStorage.metist=JSON.stringify(o); show(); }
