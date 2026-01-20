@@ -195,16 +195,15 @@
 <br>
 <button class="save" onclick="saveOrder()">บันทึกออเดอร์</button>
 
-<h2 style="margin-top:30px">📋 รายการออเดอร์</h2>
+<h2 id="order-count-title" style="margin-top:40px">📋 รายการออเดอร์</h2>
 <div id="orders"></div>
 
 <script>
-// เพิ่มสีโบว์ใหม่ (ชมพูแก้ว, แดงแก้ว) เข้าไปในฐานข้อมูลสี
 const colors = {
   แดง: "#e63946", ขาว: "#ffffff", ชมพู: "#f7b2cc",
   น้ำเงิน: "#457b9d", ม่วง: "#9b5de5", ดำ: "#333333",
-  ชมพูแก้ว: "#ff007f", // สีชมพูเข้มสะท้อนแสง
-  แดงแก้ว: "#b91d1d"   // สีแดงทับทิม
+  ชมพูแก้ว: "#ff007f", 
+  แดงแก้ว: "#b91d1d"   
 };
 
 let flowerData = {
@@ -290,11 +289,15 @@ function saveOrder() {
 
 function show() {
   let o = JSON.parse(localStorage.metist || "[]");
-  // ใช้ .reverse() เพื่อให้อันใหม่ล่าสุดขึ้นก่อน
+  
+  // ส่วนที่เพิ่ม: นับออเดอร์ที่ยังไม่เตรียม (status === false)
+  let pendingCount = o.filter(item => item.status === false).length;
+  document.getElementById("order-count-title").innerHTML = `📋 รายการออเดอร์ <span style="font-size: 0.9rem; font-weight: normal; color: #888;">(รอดำเนินการ : ${pendingCount} ออเดอร์)</span>`;
+
+
   let displayOrders = [...o].reverse(); 
 
   document.getElementById("orders").innerHTML = displayOrders.map((d, i) => {
-    // คำนวณหา Index จริงใน Array ต้นฉบับ (เพราะเรา reverse มา)
     let realIndex = o.length - 1 - i;
     
     let flowerText = [];
@@ -322,14 +325,12 @@ function show() {
   `}).join("");
 }
 
-
 function deleteOrder(i){ if(confirm("ลบออเดอร์นี้?")){ let o=JSON.parse(localStorage.metist); o.splice(i,1); localStorage.metist=JSON.stringify(o); show(); } }
 function toggleStatus(i){ let o=JSON.parse(localStorage.metist); o[i].status=!o[i].status; localStorage.metist=JSON.stringify(o); show(); }
 function togglePaid(i){ let o=JSON.parse(localStorage.metist); o[i].paid=!o[i].paid; localStorage.metist=JSON.stringify(o); show(); }
 
 renderFlowers();
 renderColorOptions(["ดำ", "ขาว", "ชมพู", "แดง"], "paper", "setPaper", "paperChoice");
-// เพิ่ม "ชมพูแก้ว" และ "แดงแก้ว" ลงในรายการปุ่มโบว์
 renderColorOptions(["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง", "ชมพูแก้ว", "แดงแก้ว"], "bow", "setBow", "bowChoice");
 renderExtras();
 show();
