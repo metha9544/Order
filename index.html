@@ -153,7 +153,7 @@
   .switch { background: #eee; }
   .receipt-btn { background: #ffc2d1; color: #5a3d45; }
 
-  /* --- Receipt Modal Style --- */
+  /* --- แก้ไข Receipt Modal Style ให้เลื่อนได้ --- */
   .modal {
     display: none;
     position: fixed;
@@ -162,14 +162,16 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.6);
+    overflow-y: auto; /* ทำให้เลื่อนหน้าจอได้ */
+    padding: 20px 0;
   }
 
   .receipt-container {
     background-color: white;
     width: 90%;
     max-width: 350px;
-    margin: 5% auto;
+    margin: 0 auto; /* ปรับ margin เพื่อให้ scroll ทำงานดีขึ้น */
     padding: 20px;
     border-radius: 25px;
     position: relative;
@@ -181,10 +183,11 @@
     border: 2px dashed #f3a6b8;
     border-radius: 20px;
     padding: 20px;
+    background-color: #fff;
   }
 
-  .receipt-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; display: block; }
-  .receipt-header { font-size: 1.5rem; color: #d48398; margin-bottom: 5px; }
+  .receipt-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; display: block; color: #5a3d45; }
+  .receipt-header { font-size: 1.5rem; color: #d48398; margin-bottom: 5px; font-weight: bold; }
   .receipt-sub { color: #bca0a0; font-size: 0.9rem; margin-bottom: 10px; }
   .receipt-date { font-size: 0.9rem; margin-bottom: 15px; color: #666; }
   
@@ -198,19 +201,22 @@
   }
 
   .qr-code {
-    width: 150px;
+    width: 160px;
     margin: 15px auto;
     display: block;
   }
 
   .close-modal {
-    margin-top: 15px;
+    margin-top: 20px;
     background: #5a3d45;
     color: white;
     border: none;
-    padding: 8px 20px;
-    border-radius: 10px;
+    padding: 12px 20px;
+    border-radius: 15px;
     cursor: pointer;
+    font-weight: bold;
+    width: 100%; /* ปุ่มปิดกว้างเต็มแผ่นใบเสร็จ */
+    font-size: 16px;
   }
 </style>
 </head>
@@ -267,16 +273,14 @@
       <div class="receipt-sub">FLOWER & LUCK</div>
       <div class="receipt-date" id="rc-date">วันที่: -</div>
       
-      <div class="receipt-details" id="rc-details">
-        </div>
+      <div class="receipt-details" id="rc-details"></div>
       
-      <div style="font-weight: bold; margin: 10px 0;">สแกนเพื่อชำระเงิน</div>
-      <img src="qr.png" alt="QR Code" class="qr-code">
-
+      <div style="font-size:0.9rem; bold; margin: 10px 0;">สแกนเพื่อชำระเงิน</div>
+      <img src="qr.png" alt="QR Code" class="qr-code" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PromptPay'">
       
-      <div style="font-size: 0.8rem; color: #888;">ขอบคุณที่อุดหนุน 💐</div>
+      <div style="font-size: 0.8rem; color: #888; margin-top: 10px;">ขอบคุณที่อุดหนุน 💐</div>
     </div>
-    <button class="close-modal" onclick="closeReceipt()">ปิดหน้าต่าง</button>
+    <button class="close-modal" onclick="closeReceipt()">ปิดหน้าต่างนี้</button>
   </div>
 </div>
 
@@ -406,7 +410,6 @@ function show() {
   `}).join("");
 }
 
-// ฟังก์ชันแสดงใบเสร็จ
 function openReceipt(index) {
   const o = JSON.parse(localStorage.metist);
   const d = o[index];
@@ -423,12 +426,12 @@ function openReceipt(index) {
 
   document.getElementById("rc-date").innerText = "วันที่: " + (d.date || new Date().toLocaleDateString('th-TH'));
   document.getElementById("rc-details").innerHTML = `
-    👤 <b>ลูกค้า:</b> ${d.name || "เวฟ"}<br>
+    👤 <b>ลูกค้า:</b> ${d.name || "ไม่ระบุชื่อ"}<br>
     🌹 <b>สีดอก:</b> ${flowerText.join(", ") || "-"}<br>
     📦 <b>กระดาษห่อ:</b> ${d.paper || "-"}<br>
     🎀 <b>โบว์:</b> ${d.bow || "-"}<br>
-    ✨ <b>ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0]).join(", ") || "-"}<br><br>
-    <b style="font-size: 1.1rem;">${d.total}</b>
+    ✨ <b>ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
+    <b style="font-size: 1.1rem; color:#5a3d45;">${d.total}</b>
   `;
   
   document.getElementById("receiptModal").style.display = "block";
