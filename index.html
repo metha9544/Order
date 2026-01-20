@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>METIST Flower Order</title>
+<title>METIST</title>
 
 <style>
   body {
@@ -11,14 +11,21 @@
     background: #fff6f8;
     padding: 15px;
     color: #5a3d45;
+    h1 { 
+    text-align: center; 
+    margin-bottom: 20px; 
+    font-size: 1.1rem;        /* ปรับขนาดให้ใกล้เคียงกับในใบเสร็จ */
+    font-weight: normal;      /* ทำให้ตัวอักษรไม่หนา */
+    color: #bca0a0;           /* ใช้สีน้ำตาลอมชมพูแบบเดียวกับ FLOWER & LUCK */
+    letter-spacing: 1px;      /* เพิ่มระยะห่างตัวอักษรเล็กน้อยให้ดูหรูขึ้น */
+    text-transform: uppercase; /* ทำให้เป็นตัวพิมพ์ใหญ่ทั้งหมดตามแบบ */
   }
-  h1 { text-align: center; margin-bottom: 20px; }
-  h2 { margin-top: 5px; margin-bottom: 15px; font-size: 1.2rem; }
+
 
   #customer {
     width: 100%;
-    padding: 20px;
-    font-size: 24px;
+    padding: 10px;
+    font-size: 16px;
     font-weight: bold;
     border-radius: 18px;
     border: 3px solid #f3a6b8;
@@ -223,7 +230,11 @@
 
 <body>
 
-<h1>🌸 METIST ✨<br>Flower Order</h1>
+<h1>
+  <span style="font-size: 2.5rem; font-weight: bold; color: #d48398; display: block; margin-bottom: 5px;">🌸 METIST ✨</span>
+  FLOWER Order
+</h1>
+
 
 <input id="customer" placeholder="กรอกชื่อลูกค้าที่นี่...">
 
