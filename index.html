@@ -308,7 +308,7 @@ function show() {
       <b>📦 กระดาษห่อ:</b> ${d.paper || "-"}<br>
       <b>🎀 โบว์:</b> ${d.bow || "-"}<br>
       <b>✨ ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
-      <b style="color:#e63946; font-size:1.1rem">${d.total}</b><br>
+      <b style="color:#00000; font-size:1rem">${d.total}</b><br>
       <button class="switch" onclick="toggleStatus(${i})">${d.status ? "✅ เตรียมแล้ว" : "⏳ รอดำเนินการ"}</button>
       <button class="switch" onclick="togglePaid(${i})">${d.paid ? "💳 จ่ายแล้ว" : "❌ ยังไม่จ่าย"}</button>
       <button class="delete" onclick="deleteOrder(${i})">🗑️ ลบ</button>
