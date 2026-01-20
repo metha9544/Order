@@ -1,1 +1,331 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>METIST Flower Order</title>
 
+<style>
+  body {
+    font-family: sans-serif;
+    background: #fff6f8;
+    padding: 15px;
+    color: #5a3d45;
+  }
+  h1 { text-align: center; margin-bottom: 20px; }
+  h2 { margin-top: 5px; margin-bottom: 15px; font-size: 1.2rem; }
+
+  #customer {
+    width: 100%;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 18px;
+    border: 3px solid #f3a6b8;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    color: #5a3d45;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 14px;
+    border: 1px solid #f2cbd3;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+  }
+
+  .section {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.06);
+  }
+
+  .type-selector {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    background: #fff0f3;
+    padding: 10px;
+    border-radius: 12px;
+    justify-content: center;
+  }
+  .type-selector label {
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px 10px;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+    gap: 12px;
+  }
+
+  .color-btn {
+    border: 2px solid rgba(0,0,0,0.05);
+    border-radius: 50%;
+    height: 65px;
+    width: 65px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    margin: 0 auto;
+    display: block;
+    transition: transform 0.1s;
+  }
+  .color-btn:active { transform: scale(0.9); }
+
+  .square-btn {
+    border: none;
+    border-radius: 14px;
+    padding: 12px 5px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .count {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 5px;
+    font-weight: bold;
+  }
+
+  .selection-text {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ff4d6d;
+    font-weight: bold;
+    min-height: 20px;
+  }
+
+  .summary {
+    background: #ffe9ef;
+    padding: 20px;
+    border-radius: 18px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    border: 2px dashed #f3a6b8;
+  }
+
+  .save {
+    width: 100%;
+    background: #f3a6b8;
+    color: #fff;
+    padding: 15px;
+    border: none;
+    border-radius: 18px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  .order {
+    background: #fff;
+    padding: 15px;
+    border-radius: 18px;
+    margin-top: 15px;
+    border-left: 5px solid #f3a6b8;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  .switch, .delete {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .delete { background: #f08080; color: #fff; }
+  .switch { background: #eee; }
+</style>
+</head>
+
+<body>
+
+<h1>🌸 METIST ✨<br>Flower Order</h1>
+
+<input id="customer" placeholder="กรอกชื่อลูกค้าที่นี่...">
+
+<div class="section">
+  <h2>🌹 สีดอกไม้</h2>
+  
+  <div class="type-selector">
+    <label><input type="radio" name="flowerType" value="พื้น" checked> สีพื้น</label>
+    <label><input type="radio" name="flowerType" value="กริตเตอร์"> สีกริตเตอร์</label>
+  </div>
+
+  <div class="buttons" id="flowers"></div>
+  
+  <br>
+  <input id="basePrice" type="number" placeholder="ราคาช่อ (บาท)" oninput="calc()">
+</div>
+
+<div class="section">
+  <h2>📦 กระดาษห่อ</h2>
+  <div class="buttons" id="paper"></div>
+  <div id="paperChoice" class="selection-text"></div>
+</div>
+
+<div class="section">
+  <h2>🎀 โบว์</h2>
+  <div class="buttons" id="bow"></div>
+  <div id="bowChoice" class="selection-text"></div>
+</div>
+
+<div class="section">
+  <h2>✨ ของตกแต่ง</h2>
+  <div class="buttons" id="extra"></div>
+</div>
+
+<div class="summary" id="summary">ราคารวม: 0 บาท</div>
+<br>
+<button class="save" onclick="saveOrder()">บันทึกออเดอร์</button>
+
+<h2 style="margin-top:30px">📋 รายการออเดอร์</h2>
+<div id="orders"></div>
+
+<script>
+// เพิ่มสีโบว์ใหม่ (ชมพูแก้ว, แดงแก้ว) เข้าไปในฐานข้อมูลสี
+const colors = {
+  แดง: "#e63946", ขาว: "#ffffff", ชมพู: "#f7b2cc",
+  น้ำเงิน: "#457b9d", ม่วง: "#9b5de5", ดำ: "#333333",
+  ชมพูแก้ว: "#ff007f", // สีชมพูเข้มสะท้อนแสง
+  แดงแก้ว: "#b91d1d"   // สีแดงทับทิม
+};
+
+let flowerData = {
+  "พื้น": {},
+  "กริตเตอร์": {}
+};
+
+let selectedPaper = "", selectedBow = "";
+let extras = {};
+const extraPrice = { ผีเสื้อ: 5, มงกุฎ: 10, ไฟLED: 25, ไข่มุก: 0, ลูกไม้: 0, การ์ด: 0 };
+
+function renderFlowers() {
+  const flowerList = ["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง"];
+  const currentType = document.querySelector('input[name="flowerType"]:checked').value;
+  
+  document.getElementById("flowers").innerHTML = flowerList.map(c => `
+    <div>
+      <button class="color-btn" style="background:${colors[c]}" onclick="addFlower('${c}')"></button>
+      <div class="count">${c}: ${flowerData["พื้น"][c] || 0} | กริตเตอร์: ${flowerData["กริตเตอร์"][c] || 0}</div>
+    </div>`).join("");
+}
+
+document.querySelectorAll('input[name="flowerType"]').forEach(radio => {
+  radio.addEventListener('change', renderFlowers);
+});
+
+function addFlower(color) {
+  const type = document.querySelector('input[name="flowerType"]:checked').value;
+  flowerData[type][color] = (flowerData[type][color] || 0) + 1;
+  renderFlowers();
+  calc();
+}
+
+function renderColorOptions(arr, id, setter, displayId) {
+  document.getElementById(id).innerHTML = arr.map(c => `
+    <button class="square-btn"
+      style="background:${colors[c] || '#ccc'}"
+      onclick="${setter}('${c}', '${displayId}')">${c}</button>
+  `).join("");
+}
+
+function setPaper(c, displayId) {
+  selectedPaper = c;
+  document.getElementById(displayId).innerText = "เลือกแล้ว: " + c;
+}
+
+function setBow(c, displayId) {
+  selectedBow = c;
+  document.getElementById(displayId).innerText = "เลือกแล้ว: " + c;
+}
+
+function renderExtras() {
+  document.getElementById("extra").innerHTML = Object.keys(extraPrice).map(e => `
+    <button class="square-btn" style="background:#f2b5d4; color:#5a3d45; text-shadow:none;"
+      onclick="extras['${e}']=(extras['${e}']||0)+1; calc()">
+      ${e} +${extraPrice[e]}
+    </button>`).join("");
+}
+
+function calc() {
+  let total = Number(document.getElementById("basePrice").value || 0);
+  Object.keys(extras).forEach(e => {
+    total += extras[e] * extraPrice[e];
+  });
+  document.getElementById("summary").innerText = "ราคารวม: " + total + " บาท";
+}
+
+function saveOrder() {
+  let orders = JSON.parse(localStorage.metist || "[]");
+  orders.push({
+    name: document.getElementById("customer").value,
+    flowers: JSON.parse(JSON.stringify(flowerData)),
+    paper: selectedPaper,
+    bow: selectedBow,
+    extras: { ...extras },
+    total: document.getElementById("summary").innerText,
+    status: false,
+    paid: false
+  });
+  localStorage.metist = JSON.stringify(orders);
+  location.reload();
+}
+
+function show() {
+  let o = JSON.parse(localStorage.metist || "[]");
+  document.getElementById("orders").innerHTML = o.map((d, i) => {
+    let flowerText = [];
+    for (let type in d.flowers) {
+      for (let color in d.flowers[type]) {
+        let count = d.flowers[type][color];
+        if (count > 0) {
+          flowerText.push(`${color}${type === "กริตเตอร์" ? "(กริตเตอร์)" : ""}${count}`);
+        }
+      }
+    }
+
+    return `
+    <div class="order">
+      <b style="font-size:1.1rem">👤 ลูกค้า: ${d.name || "ไม่ระบุชื่อ"}</b><br><br>
+      <b>🌹 รายการสีดอก:</b> ${flowerText.join(", ") || "-"}<br>
+      <b>📦 กระดาษห่อ:</b> ${d.paper || "-"}<br>
+      <b>🎀 โบว์:</b> ${d.bow || "-"}<br>
+      <b>✨ ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
+      <b style="color:#e63946; font-size:1.1rem">${d.total}</b><br>
+      <button class="switch" onclick="toggleStatus(${i})">${d.status ? "✅ เตรียมแล้ว" : "⏳ รอดำเนินการ"}</button>
+      <button class="switch" onclick="togglePaid(${i})">${d.paid ? "💳 จ่ายแล้ว" : "❌ ยังไม่จ่าย"}</button>
+      <button class="delete" onclick="deleteOrder(${i})">🗑️ ลบ</button>
+    </div>
+  `}).join("");
+}
+
+function deleteOrder(i){ if(confirm("ลบออเดอร์นี้?")){ let o=JSON.parse(localStorage.metist); o.splice(i,1); localStorage.metist=JSON.stringify(o); show(); } }
+function toggleStatus(i){ let o=JSON.parse(localStorage.metist); o[i].status=!o[i].status; localStorage.metist=JSON.stringify(o); show(); }
+function togglePaid(i){ let o=JSON.parse(localStorage.metist); o[i].paid=!o[i].paid; localStorage.metist=JSON.stringify(o); show(); }
+
+renderFlowers();
+renderColorOptions(["ดำ", "ขาว", "ชมพู", "แดง"], "paper", "setPaper", "paperChoice");
+// เพิ่ม "ชมพูแก้ว" และ "แดงแก้ว" ลงในรายการปุ่มโบว์
+renderColorOptions(["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง", "ชมพูแก้ว", "แดงแก้ว"], "bow", "setBow", "bowChoice");
+renderExtras();
+show();
+</script>
+</body>
+</html>
