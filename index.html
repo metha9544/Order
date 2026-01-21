@@ -442,11 +442,11 @@ function openReceipt(index) {
 
   document.getElementById("rc-date").innerText = "วันที่: " + (d.date || new Date().toLocaleDateString('th-TH'));
   document.getElementById("rc-details").innerHTML = `
-    👤 <b>ลูกค้า:</b> ${d.name || "ไม่ระบุชื่อ"}<br>
-    🌹 <b>สีดอก:</b> ${flowerText.join(", ") || "-"}<br>
-    📦 <b>กระดาษห่อ:</b> ${d.paper || "-"}<br>
-    🎀 <b>โบว์:</b> ${d.bow || "-"}<br>
-    ✨ <b>ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
+     <b>ลูกค้า:</b> ${d.name || "ไม่ระบุชื่อ"}<br>
+     <b>สีดอก:</b> ${flowerText.join(", ") || "-"}<br>
+     <b>กระดาษห่อ:</b> ${d.paper || "-"}<br>
+     <b>โบว์:</b> ${d.bow || "-"}<br>
+     <b>ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
     <b style="font-size: 1.1rem; color:#5a3d45;">${d.total}</b>
   `;
   
