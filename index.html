@@ -393,7 +393,7 @@ function saveOrder() {
 function show() {
   let o = JSON.parse(localStorage.metist || "[]");
   let pendingCount = o.filter(item => item.status === false).length;
-  document.getElementById("order-count-title").innerHTML = `📋 รายการออเดอร์ <span style="font-size: 0.9rem; font-weight: normal; color: #888;">(รอดำเนินการ : ${pendingCount} ออเดอร์)</span>`;
+  document.getElementById("order-count-title").innerHTML = `📋 รายการออเดอร์ <span style="font-size: 0.7rem; font-weight: normal; color: #888;">(รอดำเนินการ : ${pendingCount} ออเดอร์)</span>`;
 
   let displayOrders = [...o].reverse(); 
 
