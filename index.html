@@ -1,471 +1,67 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>METIST</title>
-
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #fff6f8;
-    padding: 15px;
-    color: #5a3d45;
-    h1 { 
-    text-align: center; 
-    margin-bottom: 20px; 
-    font-size: 1.1rem;        /* ปรับขนาดให้ใกล้เคียงกับในใบเสร็จ */
-    font-weight: normal;      /* ทำให้ตัวอักษรไม่หนา */
-    color: #bca0a0;           /* ใช้สีน้ำตาลอมชมพูแบบเดียวกับ FLOWER & LUCK */
-    letter-spacing: 1px;      /* เพิ่มระยะห่างตัวอักษรเล็กน้อยให้ดูหรูขึ้น */
-    text-transform: uppercase; /* ทำให้เป็นตัวพิมพ์ใหญ่ทั้งหมดตามแบบ */
-  }
-
-
-  #customer {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 18px;
-    border: 3px solid #f3a6b8;
-    margin-bottom: 20px;
-    box-sizing: border-box;
-    color: #5a3d45;
-    background-color: #fff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  }
-
-  input[type="number"] {
-    width: 100%;
-    padding: 15px;
-    font-size: 18px;
-    border-radius: 14px;
-    border: 1px solid #f2cbd3;
-    margin-bottom: 15px;
-    box-sizing: border-box;
-  }
-
-  .section {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,.06);
-  }
-
-  .type-selector {
-    margin-bottom: 20px;
-    display: flex;
-    gap: 15px;
-    background: #fff0f3;
-    padding: 10px;
-    border-radius: 12px;
-    justify-content: center;
-  }
-  .type-selector label {
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 5px 10px;
-  }
-
-  .buttons {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
-    gap: 12px;
-  }
-
-  .color-btn {
-    border: 2px solid rgba(0,0,0,0.05);
-    border-radius: 50%;
-    height: 65px;
-    width: 65px;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    margin: 0 auto;
-    display: block;
-    transition: transform 0.1s;
-  }
-  .color-btn:active { transform: scale(0.9); }
-
-  .square-btn {
-    border: none;
-    border-radius: 14px;
-    padding: 12px 5px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-  }
-
-    .count {
-    text-align: center;
-    font-size: 12px; /* ลดขนาดลงเล็กน้อยเพื่อให้แสดงผลพอในบรรทัดเดียว */
-    margin-top: 5px;
-    font-weight: bold;
-    white-space: nowrap; /* สั่งให้ห้ามขึ้นบรรทัดใหม่ในส่วนนี้ */
-  }
-
-
-  .selection-text {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #ff4d6d;
-    font-weight: bold;
-    min-height: 20px;
-  }
-
-  .summary {
-    background: #ffe9ef;
-    padding: 20px;
-    border-radius: 18px;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    border: 2px dashed #f3a6b8;
-  }
-
-  .save {
-    width: 100%;
-    background: #f3a6b8;
-    color: #fff;
-    padding: 15px;
-    border: none;
-    border-radius: 18px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-
-  .order {
-    background: #fff;
-    padding: 15px;
-    border-radius: 18px;
-    margin-top: 15px;
-    border-left: 5px solid #f3a6b8;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  }
-
-  .switch, .delete, .receipt-btn {
-    margin-top: 10px;
-    padding: 10px 14px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  .delete { background: #f08080; color: #fff; }
-  .switch { background: #eee; }
-  .receipt-btn { background: #ffc2d1; color: #5a3d45; }
-
-  /* --- แก้ไข Receipt Modal Style ให้เลื่อนได้ --- */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.6);
-    overflow-y: auto; /* ทำให้เลื่อนหน้าจอได้ */
-    padding: 20px 0;
-  }
-
-  .receipt-container {
-    background-color: white;
-    width: 90%;
-    max-width: 350px;
-    margin: 0 auto; /* ปรับ margin เพื่อให้ scroll ทำงานดีขึ้น */
-    padding: 20px;
-    border-radius: 25px;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    text-align: center;
-  }
-
-  .receipt-border {
-    border: 2px dashed #f3a6b8;
-    border-radius: 20px;
-    padding: 20px;
-    background-color: #fff;
-  }
-
-  .receipt-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; display: block; color: #5a3d45; }
-  .receipt-header { font-size: 1.5rem; color: #d48398; margin-bottom: 5px; font-weight: bold; }
-  .receipt-sub { color: #bca0a0; font-size: 0.9rem; margin-bottom: 10px; }
-  .receipt-date { font-size: 0.9rem; margin-bottom: 15px; color: #666; }
-  
-  .receipt-details {
-    text-align: left;
-    font-size: 0.95rem;
-    line-height: 1.8;
-    margin: 15px 0;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-  }
-
-  .qr-code {
-    width: 160px;
-    margin: 15px auto;
-    display: block;
-  }
-
-  .close-modal {
-    margin-top: 20px;
-    background: #5a3d45;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 15px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%; /* ปุ่มปิดกว้างเต็มแผ่นใบเสร็จ */
-    font-size: 16px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Private Tube</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #000; color: #fff; text-align: center; padding: 20px; }
+        input { width: 100%; max-width: 400px; padding: 15px; border-radius: 12px; border: 1px solid #333; background: #1a1a1a; color: #fff; margin-bottom: 15px; }
+        button { width: 100%; max-width: 400px; padding: 15px; background: #007AFF; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; }
+        #status { margin: 15px 0; color: #00bbff; font-size: 14px; }
+        .video-box { width: 100%; max-width: 600px; margin-top: 20px; border-radius: 12px; overflow: hidden; background: #111; position: relative; aspect-ratio: 16/9; }
+        video { width: 100%; height: 100%; }
+    </style>
 </head>
-
 <body>
 
-<h1>
-  <span style="font-size: 2.5rem; font-weight: bold; color: #d48398; display: block; margin-bottom: 5px;">🌸 METIST ✨</span>
-  FLOWER Order
-</h1>
+    <h2>iOS Private Player</h2>
+    <input type="text" id="ytUrl" placeholder="วางลิงก์ YouTube ที่นี่...">
+    <button onclick="playVideo()">เล่นวิดีโอ (No Ads)</button>
+    <div id="status">พร้อมทำงาน</div>
 
-
-<input id="customer" placeholder="กรอกชื่อลูกค้าที่นี่...">
-
-<div class="section">
-  <h2>🌹 สีดอกไม้</h2>
-  
-  <div class="type-selector">
-    <label><input type="radio" name="flowerType" value="กริตเตอร์" checked> สีกริตเตอร์</label>
-    <label><input type="radio" name="flowerType" value="พื้น"> สีพื้น</label>
-  </div>
-
-  <div class="buttons" id="flowers"></div>
-  
-  <br>
-  <input id="basePrice" type="number" placeholder="ราคาช่อ (บาท)" oninput="calc()">
-</div>
-
-<div class="section">
-  <h2>📦 กระดาษห่อ</h2>
-  <div class="buttons" id="paper"></div>
-  <div id="paperChoice" class="selection-text"></div>
-</div>
-
-<div class="section">
-  <h2>🎀 โบว์</h2>
-  <div class="buttons" id="bow"></div>
-  <div id="bowChoice" class="selection-text"></div>
-</div>
-
-<div class="section">
-  <h2>✨ ของตกแต่ง</h2>
-  <div class="buttons" id="extra"></div>
-</div>
-
-<div class="summary" id="summary">ราคารวม: 0 บาท</div>
-<br>
-<button class="save" onclick="saveOrder()">บันทึกออเดอร์</button>
-
-<h2 id="order-count-title" style="margin-top:40px">📋 รายการออเดอร์</h2>
-<div id="orders"></div>
-
-<div id="receiptModal" class="modal">
-  <div class="receipt-container">
-    <span class="receipt-title">ใบเสร็จ</span>
-    <div class="receipt-border">
-      <div class="receipt-header">🌸 METIST ✨</div>
-      <div class="receipt-sub">FLOWER & LUCK</div>
-      <div class="receipt-date" id="rc-date">วันที่: -</div>
-      
-      <div class="receipt-details" id="rc-details"></div>
-      
-      <div style="font-size:0.9rem; bold; margin: 10px 0;">สแกนเพื่อชำระเงิน</div>
-      <img src="qr.png" alt="QR Code" class="qr-code" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PromptPay'">
-      
-      <div style="font-size: 0.8rem; color: #888; margin-top: 10px;">ขอบคุณที่อุดหนุน 💐</div>
+    <div class="video-box">
+        <video id="vPlayer" controls playsinline></video>
     </div>
-    <button class="close-modal" onclick="closeReceipt()">ปิดหน้าต่างนี้</button>
-  </div>
-</div>
 
-<script>
-const colors = {
-  แดง: "#e63946", ขาว: "#ffffff", ชมพู: "#f7b2cc",
-  น้ำเงิน: "#457b9d", ม่วง: "#9b5de5", ดำ: "#333333",
-  ชมพูแก้ว: "#ff007f", 
-  แดงแก้ว: "#b91d1d"   
-};
+    <script>
+        async function playVideo() {
+            const urlInput = document.getElementById('ytUrl').value;
+            const player = document.getElementById('vPlayer');
+            const status = document.getElementById('status');
+            
+            let vId = "";
+            if (urlInput.includes("v=")) vId = urlInput.split("v=")[1].split("&")[0];
+            else if (urlInput.includes("youtu.be/")) vId = urlInput.split("youtu.be/")[1].split("?")[0];
+            else vId = urlInput;
 
-let flowerData = {
-  "พื้น": {},
-  "กริตเตอร์": {}
-};
+            if (vId.length < 5) return alert("กรุณาใส่ลิงก์ให้ถูกต้อง");
 
-let selectedPaper = "", selectedBow = "";
-let extras = {};
-const extraPrice = { ผีเสื้อ: 5, มงกุฎ: 10, ไฟLED: 25, ไข่มุก: 0, ลูกไม้: 0, การ์ด: 0 };
+            status.innerText = "กำลังดึงข้อมูลจาก Server 1...";
 
-function renderFlowers() {
-  const flowerList = ["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง"];
-  const currentType = document.querySelector('input[name="flowerType"]:checked').value;
-  
-  document.getElementById("flowers").innerHTML = flowerList.map(c => `
-    <div>
-      <button class="color-btn" style="background:${colors[c]}" onclick="addFlower('${c}')"></button>
-      <div class="count">
-        ${c}: ${flowerData["พื้น"][c] || 0}<br>
-        กริตเตอร์: ${flowerData["กริตเตอร์"][c] || 0}
-      </div>
-    </div>`).join("");
-}
-
-document.querySelectorAll('input[name="flowerType"]').forEach(radio => {
-  radio.addEventListener('change', renderFlowers);
-});
-
-function addFlower(color) {
-  const type = document.querySelector('input[name="flowerType"]:checked').value;
-  flowerData[type][color] = (flowerData[type][color] || 0) + 1;
-  renderFlowers();
-  calc();
-}
-
-function renderColorOptions(arr, id, setter, displayId) {
-  document.getElementById(id).innerHTML = arr.map(c => `
-    <button class="square-btn"
-      style="background:${colors[c] || '#ccc'}"
-      onclick="${setter}('${c}', '${displayId}')">${c}</button>
-  `).join("");
-}
-
-function setPaper(c, displayId) {
-  selectedPaper = c;
-  document.getElementById(displayId).innerText = "เลือกแล้ว: " + c;
-}
-
-function setBow(c, displayId) {
-  selectedBow = c;
-  document.getElementById(displayId).innerText = "เลือกแล้ว: " + c;
-}
-
-function renderExtras() {
-  document.getElementById("extra").innerHTML = Object.keys(extraPrice).map(e => `
-    <button class="square-btn" style="background:#f2b5d4; color:#5a3d45; text-shadow:none;"
-      onclick="extras['${e}']=(extras['${e}']||0)+1; calc()">
-      ${e} +${extraPrice[e]}
-    </button>`).join("");
-}
-
-function calc() {
-  let total = Number(document.getElementById("basePrice").value || 0);
-  Object.keys(extras).forEach(e => {
-    total += extras[e] * extraPrice[e];
-  });
-  document.getElementById("summary").innerText = "ราคารวม: " + total + " บาท";
-}
-
-function saveOrder() {
-  let orders = JSON.parse(localStorage.metist || "[]");
-  orders.push({
-    name: document.getElementById("customer").value,
-    flowers: JSON.parse(JSON.stringify(flowerData)),
-    paper: selectedPaper,
-    bow: selectedBow,
-    extras: { ...extras },
-    total: document.getElementById("summary").innerText,
-    status: false,
-    paid: false,
-    date: new Date().toLocaleDateString('th-TH')
-  });
-  localStorage.metist = JSON.stringify(orders);
-  location.reload();
-}
-
-function show() {
-  let o = JSON.parse(localStorage.metist || "[]");
-  let pendingCount = o.filter(item => item.status === false).length;
-  document.getElementById("order-count-title").innerHTML = `📋 รายการออเดอร์ <span style="font-size: 0.7rem; font-weight: normal; color: #888;">(รอดำเนินการ : ${pendingCount} ออเดอร์)</span>`;
-
-  let displayOrders = [...o].reverse(); 
-
-  document.getElementById("orders").innerHTML = displayOrders.map((d, i) => {
-    let realIndex = o.length - 1 - i;
-    
-    let flowerText = [];
-    for (let type in d.flowers) {
-      for (let color in d.flowers[type]) {
-        let count = d.flowers[type][color];
-        if (count > 0) {
-          flowerText.push(`${color}${type === "กริตเตอร์" ? "(กริตเตอร์)" : ""}${count}`);
+            try {
+                // ใช้ Piped API แทน Invidious เพราะ iOS ยอมรับง่ายกว่า
+                const res = await fetch(`https://pipedapi.kavin.rocks/streams/${vId}`);
+                const data = await res.json();
+                
+                if (data.videoStreams && data.videoStreams.length > 0) {
+                    // เลือกวิดีโอที่เป็น mp4 เพื่อให้เล่นบน iOS ได้ลื่น
+                    const stream = data.videoStreams.find(s => s.format === 'VIDEO_MP4') || data.videoStreams[0];
+                    player.src = stream.url;
+                    player.load();
+                    player.play().catch(() => {
+                        status.innerText = "กดปุ่ม Play ที่ตัววิดีโอเพื่อเริ่มเล่น";
+                    });
+                    status.innerText = "กำลังเล่น: " + (data.title || "วิดีโอของคุณ");
+                } else {
+                    throw "หาไฟล์ไม่เจอ";
+                }
+            } catch (e) {
+                status.innerText = "Server 1 ไม่ตอบสนอง กำลังลอง Server 2...";
+                // ถ้าล่ม ให้ลอง Server สำรองตัวสุดท้าย
+                player.src = `https://invidious.projectsegfau.lt/latest_version?id=${vId}&itag=22`;
+            }
         }
-      }
-    }
-
-    return `
-    <div class="order">
-      <b style="font-size:1.1rem">👤 ลูกค้า: ${d.name || "ไม่ระบุชื่อ"}</b><br><br>
-      <b>🌹 สีดอก:</b> ${flowerText.join(", ") || "-"}<br>
-      <b>📦 กระดาษห่อ:</b> ${d.paper || "-"}<br>
-      <b>🎀 โบว์:</b> ${d.bow || "-"}<br>
-      <b>✨ ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
-      <b style="color:#00000; font-size:1rem">${d.total}</b><br>
-      <button class="switch" onclick="toggleStatus(${realIndex})">${d.status ? "✅ เตรียมแล้ว" : "⏳ รอดำเนินการ"}</button>
-      <button class="switch" onclick="togglePaid(${realIndex})">${d.paid ? "💳 จ่ายแล้ว" : "❌ ยังไม่จ่าย"}</button>
-      <button class="receipt-btn" onclick="openReceipt(${realIndex})">🧾 ใบเสร็จ</button>
-      <button class="delete" onclick="deleteOrder(${realIndex})">🗑️ ลบ</button>
-    </div>
-  `}).join("");
-}
-
-function openReceipt(index) {
-  const o = JSON.parse(localStorage.metist);
-  const d = o[index];
-  
-  let flowerText = [];
-  for (let type in d.flowers) {
-    for (let color in d.flowers[type]) {
-      let count = d.flowers[type][color];
-      if (count > 0) {
-        flowerText.push(`${color}${type === "กริตเตอร์" ? "(กริตเตอร์)" : ""}${count}`);
-      }
-    }
-  }
-
-  document.getElementById("rc-date").innerText = "วันที่: " + (d.date || new Date().toLocaleDateString('th-TH'));
-  document.getElementById("rc-details").innerHTML = `
-     <b>ลูกค้า:</b> ${d.name || "ไม่ระบุชื่อ"}<br>
-     <b>สีดอก:</b> ${flowerText.join(", ") || "-"}<br>
-     <b>กระดาษห่อ:</b> ${d.paper || "-"}<br>
-     <b>โบว์:</b> ${d.bow || "-"}<br>
-     <b>ของตกแต่ง:</b> ${Object.entries(d.extras).map(e => e[0] + "(" + e[1] + ")").join(", ") || "-"}<br><br>
-    <b style="font-size: 1.1rem; color:#5a3d45;">${d.total}</b>
-  `;
-  
-  document.getElementById("receiptModal").style.display = "block";
-}
-
-function closeReceipt() {
-  document.getElementById("receiptModal").style.display = "none";
-}
-
-function deleteOrder(i){ if(confirm("ลบออเดอร์นี้?")){ let o=JSON.parse(localStorage.metist); o.splice(i,1); localStorage.metist=JSON.stringify(o); show(); } }
-function toggleStatus(i){ let o=JSON.parse(localStorage.metist); o[i].status=!o[i].status; localStorage.metist=JSON.stringify(o); show(); }
-function togglePaid(i){ let o=JSON.parse(localStorage.metist); o[i].paid=!o[i].paid; localStorage.metist=JSON.stringify(o); show(); }
-
-renderFlowers();
-renderColorOptions(["ดำ", "ขาว", "ชมพู", "แดง"], "paper", "setPaper", "paperChoice");
-renderColorOptions(["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง", "ชมพูแก้ว", "แดงแก้ว"], "bow", "setBow", "bowChoice");
-renderExtras();
-show();
-</script>
+    </script>
 </body>
 </html>
