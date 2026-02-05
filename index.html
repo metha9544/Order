@@ -3,120 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>High-Res Mini Printer Splitter</title>
+    <title>Mini Printer Long Strip Maker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
-        body { font-family: 'ChulaCharasNew', sans-serif; background: #f0f2f5; padding: 20px; text-align: center; }
-        .card { background: white; max-width: 500px; margin: auto; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .upload-box { border: 3px dashed #007bff; padding: 40px; border-radius: 15px; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
-        .upload-box:hover { background: #eef6ff; border-color: #0056b3; }
-        .btn-process { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; }
-        .btn-download { background: #000; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer; }
-        .preview-item { background: #fff; margin-top: 20px; padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
-        canvas { width: 100%; height: auto; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
-        .setting-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; text-align: left; }
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; color: #333; }
+        .card { background: white; max-width: 600px; margin: auto; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .upload-area { border: 3px dashed #4A90E2; padding: 30px; border-radius: 10px; cursor: pointer; margin-bottom: 20px; background: #f9fcff; }
+        .upload-area:hover { background: #eef6ff; }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #eee; padding: 15px; border-radius: 10px; }
+        .btn-main { background: #4A90E2; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; }
+        .btn-main:hover { background: #357ABD; }
+        #previewContainer { margin-top: 20px; overflow-x: auto; white-space: nowrap; background: #333; padding: 20px; border-radius: 10px; display: none; }
+        canvas { box-shadow: 0 0 10px rgba(0,0,0,0.5); background: white; max-height: 400px; }
+        .info { font-size: 12px; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="margin-top:0">🖨️ เครื่องมือเตรียมใบปะหน้า</h2>
+    <h2>📏 ตัวสร้างไฟล์ปริ้นใบปะหน้า (แบบยาว)</h2>
+    <p>เหมาะสำหรับกระดาษต่อเนื่อง 57mm</p>
     
-    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" accept="application/pdf" style="display:none">
-        <strong>+ เลือกไฟล์ PDF</strong>
-        <p style="font-size: 12px; color: #888;">ไฟล์ที่ได้จะมีความคมชัดสูงพิเศษ</p>
+        <strong>📁 เลือกไฟล์ PDF ใบปะหน้า</strong>
+        <p class="info">ภาพจะถูกหมุนเป็นแนวนอนให้โดยอัตโนมัติ</p>
     </div>
 
-    <div class="setting-group">
-        <label>จำนวนส่วนที่ต้องการหั่น:</label>
-        <input type="number" id="splitCount" value="2" min="1" style="width: 50px; padding: 5px;">
+    <div class="controls">
+        <span>จำนวนส่วนที่หั่นต่อกัน:</span>
+        <input type="number" id="splitCount" value="2" min="1" max="10" style="padding: 8px; width: 60px; border-radius: 5px; border: 1px solid #ccc;">
     </div>
 
-    <button class="btn-process" onclick="processPDF()">เริ่มประมวลผลความชัดสูง</button>
+    <button class="btn-main" onclick="processAndMerge()">สร้างไฟล์และดาวน์โหลดภาพเดียว</button>
 
-    <div id="previewContainer"></div>
+    <div id="previewContainer" id="resultArea">
+        <p style="color:white">ตัวอย่างภาพที่จะได้ (ภาพยาว):</p>
+        <div id="canvasWrapper"></div>
+    </div>
 </div>
 
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-    async function processPDF() {
+    async function processAndMerge() {
         const fileInput = document.getElementById('fileInput');
         const splitCount = parseInt(document.getElementById('splitCount').value);
-        const container = document.getElementById('previewContainer');
+        const wrapper = document.getElementById('canvasWrapper');
+        const preview = document.getElementById('previewContainer');
 
-        if (!fileInput.files[0]) return alert("กรุณาเลือกไฟล์ PDF ครับ");
+        if (!fileInput.files[0]) return alert("กรุณาเลือกไฟล์ก่อนครับ");
 
-        container.innerHTML = "<p>กำลังเรนเดอร์ภาพความละเอียดสูง...</p>";
-
+        // 1. Load PDF
         const file = fileInput.files[0];
         const arrayBuffer = await file.arrayBuffer();
-        
-        // โหลด PDF
         const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
         const page = await pdf.getPage(1);
 
-        // *** จุดสำคัญ: เพิ่ม Scale เป็น 5 เท่าเพื่อให้ตัวอักษรคมกริบ ***
-        const scale = 5.0; 
+        // 2. Render PDF High Res
+        const scale = 4.0; 
         const viewport = page.getViewport({ scale: scale });
-        
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d', { alpha: false });
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = viewport.width;
+        tempCanvas.height = viewport.height;
+        await page.render({ canvasContext: tempCtx, viewport: viewport }).promise;
 
-        // ตั้งค่าให้ภาพชัดที่สุด
-        context.imageSmoothingEnabled = true;
-        context.imageSmoothingQuality = 'high';
+        // 3. เตรียม Canvas สำหรับภาพยาว (หั่นแนวตั้งของต้นฉบับ มาวางเรียงต่อกันเป็นแนวนอน)
+        // เพราะเราจะหมุนหน้ากระดาษ PDF จากแนวตั้งเป็นแนวนอนเพื่อให้ปริ้นออกมาใหญ่
+        const partWidth = tempCanvas.width;
+        const partHeight = tempCanvas.height / splitCount;
 
-        await page.render({ 
-            canvasContext: context, 
-            viewport: viewport,
-            intent: 'print' // ใช้โหมดปริ้นเพื่อให้ตัวหนังสือเข้มขึ้น
-        }).promise;
+        const finalCanvas = document.createElement('canvas');
+        const finalCtx = finalCanvas.getContext('2d');
 
-        container.innerHTML = "";
-
-        const partHeight = canvas.height / splitCount;
+        // ความกว้างใหม่ = ความสูงของส่วนที่หั่นมาวางนอน
+        // ความยาวใหม่ = ความกว้างของส่วนที่หั่น * จำนวนส่วน
+        finalCanvas.width = partHeight * splitCount; 
+        finalCanvas.height = partWidth; 
 
         for (let i = 0; i < splitCount; i++) {
-            const partCanvas = document.createElement('canvas');
-            const partCtx = partCanvas.getContext('2d');
-            
-            partCanvas.width = canvas.width;
-            partCanvas.height = partHeight;
+            // สร้าง Canvas ย่อยเพื่อดึงภาพมาหมุน
+            const pCanvas = document.createElement('canvas');
+            const pCtx = pCanvas.getContext('2d');
+            pCanvas.width = partHeight;
+            pCanvas.height = partWidth;
 
-            // วาดส่วนแบ่ง
-            partCtx.drawImage(
-                canvas, 
-                0, i * partHeight, canvas.width, partHeight, 
-                0, 0, canvas.width, partHeight
+            // ย้ายจุดหมุนไปตรงกลาง
+            pCtx.translate(pCanvas.width / 2, pCanvas.height / 2);
+            pCtx.rotate(90 * Math.PI / 180); // หมุน 90 องศา
+
+            // วาดส่วนที่หั่นลงไป
+            pCtx.drawImage(
+                tempCanvas,
+                0, i * partHeight, partWidth, partHeight, // Source (หั่นแนวตั้ง)
+                -partWidth / 2, -partHeight / 2, partWidth, partHeight // Destination
             );
 
-            const wrapper = document.createElement('div');
-            wrapper.className = "preview-item";
-            
-            const title = document.createElement('div');
-            title.innerHTML = `<strong>ส่วนที่ ${i+1}</strong> (Resolution: ${partCanvas.width}x${Math.round(partCanvas.height)})`;
-            title.style.fontSize = "12px";
-            title.style.marginBottom = "10px";
-
-            const downloadBtn = document.createElement('button');
-            downloadBtn.innerText = "⬇️ ดาวน์โหลดภาพชัดพิเศษ";
-            downloadBtn.className = "btn-download";
-            downloadBtn.onclick = () => {
-                const link = document.createElement('a');
-                link.download = `clear-label-part-${i+1}.png`;
-                link.href = partCanvas.toDataURL('image/png', 1.0); // คุณภาพ 100%
-                link.click();
-            };
-
-            wrapper.appendChild(title);
-            wrapper.appendChild(partCanvas);
-            wrapper.appendChild(downloadBtn);
-            container.appendChild(wrapper);
+            // เอาไปแปะต่อกันใน Final Canvas (เรียงแนวนอน)
+            finalCtx.drawImage(pCanvas, i * partHeight, 0);
         }
+
+        // 4. แสดงผลและดาวน์โหลด
+        wrapper.innerHTML = "";
+        wrapper.appendChild(finalCanvas);
+        preview.style.display = "block";
+
+        const link = document.createElement('a');
+        link.download = `ready-to-print-57mm.png`;
+        link.href = finalCanvas.toDataURL('image/png');
+        link.click();
     }
 </script>
 
