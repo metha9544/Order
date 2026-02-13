@@ -24,7 +24,7 @@
         
         .upload-area { border: 3px dashed var(--primary-color); padding: 30px; border-radius: 15px; cursor: pointer; margin-bottom: 20px; background: #fff9f5; }
         #pdfWrapper { position: relative; display: inline-block; margin: 15px 0; border: 2px solid #ccc; max-width: 100%; display: none; line-height: 0; }
-        #selectionBox { position: absolute; border: 3px solid #ff0000; background: rgba(255, 0, 0, 0.15); cursor: move; width: 100%; height: 200px; box-sizing: border-box; }
+        #selectionBox { position: absolute; border: 3px solid #ff0000; background: rgba(255, 0, 0, 0.15); cursor: move; display: none; box-sizing: border-box; }
         .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; }
         button { padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
         .btn-process { background: var(--primary-color); color: white; }
@@ -78,29 +78,51 @@
     let finalBlob = null;
     let displayScale = 1.0;
 
-    let isDragging = false;
-    let startY, startTop;
+    let isDrawing = false;
+    let startX, startY;
 
-    const startDrag = (e) => {
-        isDragging = true;
-        startY = e.clientY || e.touches[0].clientY;
-        startTop = selectionBox.offsetTop;
-    };
-    const moveDrag = (e) => {
-        if (!isDragging) return;
+    const startRectangle = (e) => {
+        isDrawing = true;
+        const clientX = e.clientX || e.touches[0].clientX;
         const clientY = e.clientY || e.touches[0].clientY;
-        let newTop = startTop + (clientY - startY);
-        newTop = Math.max(0, Math.min(newTop, displayCanvas.offsetHeight - selectionBox.offsetHeight));
-        selectionBox.style.top = newTop + "px";
+
+        startX = clientX - pdfWrapper.offsetLeft; 
+        startY = clientY - pdfWrapper.offsetTop;
+
+        selectionBox.style.display = "block";
+        selectionBox.style.left = `${startX}px`;
+        selectionBox.style.top = `${startY}px`;
+        selectionBox.style.width = "0px";
+        selectionBox.style.height = "0px";
+    };
+
+    const drawRectangle = (e) => {
+        if (!isDrawing) return;
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+
+        const boxWidth = Math.abs(clientX - pdfWrapper.offsetLeft - startX);
+        const boxHeight = Math.abs(clientY - pdfWrapper.offsetTop - startY);
+
+        selectionBox.style.width = `${boxWidth}px`;
+        selectionBox.style.height = `${boxHeight}px`;
+        selectionBox.style.left = `${Math.min(startX, clientX - pdfWrapper.offsetLeft)}px`;
+        selectionBox.style.top = `${Math.min(startY, clientY - pdfWrapper.offsetTop)}px`;
+
         if(e.cancelable) e.preventDefault();
     };
-    
-    selectionBox.addEventListener('mousedown', startDrag);
-    selectionBox.addEventListener('touchstart', startDrag);
-    window.addEventListener('mousemove', moveDrag);
-    window.addEventListener('touchmove', moveDrag, {passive: false});
-    window.addEventListener('mouseup', () => isDragging = false);
-    window.addEventListener('touchend', () => isDragging = false);
+
+    const endRectangle = () => {
+        isDrawing = false;
+    };
+
+    // ปรับ Event Listener
+    pdfWrapper.addEventListener('mousedown', startRectangle);
+    pdfWrapper.addEventListener('touchstart', startRectangle);
+    window.addEventListener('mousemove', drawRectangle);
+    window.addEventListener('touchmove', drawRectangle, { passive: false });
+    window.addEventListener('mouseup', endRectangle);
+    window.addEventListener('touchend', endRectangle);
 
     document.getElementById('boxHeightInput').oninput = function() {
         selectionBox.style.height = this.value + "px";
@@ -138,8 +160,8 @@
         await page.render({ canvasContext: hdCtx, viewport: hdViewport, intent: 'print' }).promise;
 
         const ratio = hdScale / displayScale;
-        const cropY = selectionBox.offsetTop * ratio;
-        const cropH = selectionBox.offsetHeight * ratio;
+        const cropY = parseInt(selectionBox.style.top) * ratio;
+        const cropH = parseInt(selectionBox.style.height) * ratio;
         const cropW = hdCanvas.width;
         const partW = cropW;
         const partH = cropH / splitCount;
