@@ -3,46 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iShip Print Fix</title>
-
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="iShipPrint">
-    
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/446/446991.png">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/446/446991.png">
-
+    <title>iShip Print Pro - Smooth Sharp</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    
     <style>
-        :root { --primary-color: #ff6b00; } /* เปลี่ยนเป็นสีส้มแบบ iShip */
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 20px; text-align: center; }
+        :root { --primary-color: #ff6b00; }
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 20px; text-align: center; margin: 0; }
         .card { background: white; max-width: 500px; margin: auto; padding: 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        /* สไตล์โลโก้ด้านบน */
         .app-logo { width: 60px; height: 60px; margin-bottom: 10px; border-radius: 12px; }
+        .upload-area { border: 3px dashed var(--primary-color); padding: 30px; border-radius: 15px; cursor: pointer; background: #fff9f5; margin-bottom: 20px; }
         
-        .upload-area { border: 3px dashed var(--primary-color); padding: 30px; border-radius: 15px; cursor: pointer; margin-bottom: 20px; background: #fff9f5; }
-        #pdfWrapper { position: relative; display: inline-block; margin: 15px 0; border: 2px solid #ccc; max-width: 100%; display: none; line-height: 0; }
-        #selectionBox { position: absolute; border: 3px solid #ff0000; background: rgba(255, 0, 0, 0.15); cursor: move; display: none; box-sizing: border-box; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; }
-        button { padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
+        #pdfWrapper { 
+            position: relative; display: none; margin: 15px 0; border: 2px solid #ccc; 
+            line-height: 0; touch-action: none; user-select: none; overflow: hidden;
+        }
+        #displayCanvas { width: 100%; height: auto; }
+        #selectionBox { 
+            position: absolute; border: 2px solid #ff0000; background: rgba(255, 0, 0, 0.1); 
+            display: none; pointer-events: none; box-sizing: border-box;
+        }
+        
+        .controls { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        button { padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
         .btn-process { background: var(--primary-color); color: white; }
-        .btn-process:active { transform: scale(0.98); }
-        .btn-share { background: #28a745; color: white; margin-top: 15px; display: none; }
-        #previewCanvas { width: 150px; border: 2px solid #333; margin-top: 20px; display: none; background: white; }
+        .btn-share { background: #28a745; color: white; display: none; }
+        #previewCanvas { width: 100%; border: 1px solid #333; margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <img src="https://cdn-icons-png.flaticon.com/512/446/446991.png" alt="Logo" class="app-logo">
-    <h2 style="margin-top:0; color: var(--primary-color);">iShip Print Fix</h2>
-    <p style="font-size: 13px; color: #666;">ตัดใบปะหน้าให้ตัวใหญ่ คมชัดระดับ HD</p>
+    <h2 style="margin-top:0; color: var(--primary-color);">iShip Print Fix 🚀</h2>
+    <p id="status" style="font-size: 13px;">คืนค่าความคมแบบเนียนตา (High-Res Mode)</p>
 
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" accept="application/pdf" style="display:none">
-        <strong>📂 เลือกไฟล์ PDF ใบปะหน้า</strong>
+        <strong>📂 เลือกไฟล์ PDF</strong>
     </div>
 
     <div id="pdfWrapper">
@@ -51,156 +47,138 @@
     </div>
 
     <div class="controls">
-        <div>
-            <label style="font-size:12px; font-weight: bold;">หั่นกี่ส่วน:</label>
-            <input type="number" id="splitCount" value="2" min="1" max="5" style="width:90%; padding:8px; border-radius: 5px; border:1px solid #ddd;">
-        </div>
-        <div>
-            <label style="font-size:12px; font-weight: bold;">ปรับความสูงกรอบ:</label>
-            <input type="range" id="boxHeightInput" min="50" max="1000" value="350">
-        </div>
+        <label style="font-size:12px; font-weight: bold;">แบ่งเป็นกี่ส่วน (กรณีใบปะหน้ายาว):</label>
+        <input type="number" id="splitCount" value="1" min="1" max="5" style="width:100%; padding:10px; box-sizing:border-box; margin-top:5px;">
     </div>
 
-    <button class="btn-process" onclick="processUltraSharp()">ดำเนินการ</button>
-    <button id="shareBtn" class="btn-share" onclick="shareToPrinter()">บันทึก</button>
+    <button class="btn-process" onclick="processSmoothSharp()">ดำเนินการ (ความละเอียดสูง)</button>
+    <button id="shareBtn" class="btn-share" onclick="shareToPrinter()">บันทึกรูปภาพ</button>
 
-    <div id="status" style="margin-top:15px; font-weight:bold; color:var(--primary-color);"></div>
     <canvas id="previewCanvas"></canvas>
 </div>
 
 <script>
-    // --- JavaScript ส่วนเดิมของคุณทั้งหมด ---
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     
-    let currentPdf = null;
+    let currentPdf = null, pdfPage = null, finalBlob = null;
     let displayCanvas = document.getElementById('displayCanvas');
     let selectionBox = document.getElementById('selectionBox');
-    let finalBlob = null;
-    let displayScale = 1.0;
+    let pdfWrapper = document.getElementById('pdfWrapper');
+    let isDrawing = false, startX, startY;
 
-    let isDrawing = false;
-    let startX, startY;
+    function getMousePos(e) {
+        const rect = displayCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const scaleX = displayCanvas.width / rect.width;
+        const scaleY = displayCanvas.height / rect.height;
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    }
 
-    const startRectangle = (e) => {
+    const startSelection = (e) => {
         isDrawing = true;
-        const clientX = e.clientX || e.touches[0].clientX;
-        const clientY = e.clientY || e.touches[0].clientY;
-
-        startX = clientX - pdfWrapper.offsetLeft; 
-        startY = clientY - pdfWrapper.offsetTop;
-
+        const pos = getMousePos(e);
+        startX = pos.x; startY = pos.y;
         selectionBox.style.display = "block";
-        selectionBox.style.left = `${startX}px`;
-        selectionBox.style.top = `${startY}px`;
-        selectionBox.style.width = "0px";
-        selectionBox.style.height = "0px";
     };
 
-    const drawRectangle = (e) => {
+    const moveSelection = (e) => {
         if (!isDrawing) return;
-        const clientX = e.clientX || e.touches[0].clientX;
-        const clientY = e.clientY || e.touches[0].clientY;
-
-        const boxWidth = Math.abs(clientX - pdfWrapper.offsetLeft - startX);
-        const boxHeight = Math.abs(clientY - pdfWrapper.offsetTop - startY);
-
-        selectionBox.style.width = `${boxWidth}px`;
-        selectionBox.style.height = `${boxHeight}px`;
-        selectionBox.style.left = `${Math.min(startX, clientX - pdfWrapper.offsetLeft)}px`;
-        selectionBox.style.top = `${Math.min(startY, clientY - pdfWrapper.offsetTop)}px`;
-
-        if(e.cancelable) e.preventDefault();
+        const currentPos = getMousePos(e);
+        const rect = displayCanvas.getBoundingClientRect();
+        const sX = rect.width / displayCanvas.width;
+        const sY = rect.height / displayCanvas.height;
+        selectionBox.style.left = `${Math.min(startX, currentPos.x) * sX}px`;
+        selectionBox.style.top = `${Math.min(startY, currentPos.y) * sY}px`;
+        selectionBox.style.width = `${Math.abs(startX - currentPos.x) * sX}px`;
+        selectionBox.style.height = `${Math.abs(startY - currentPos.y) * sY}px`;
     };
 
-    const endRectangle = () => {
-        isDrawing = false;
-    };
-
-    // ปรับ Event Listener
-    pdfWrapper.addEventListener('mousedown', startRectangle);
-    pdfWrapper.addEventListener('touchstart', startRectangle);
-    window.addEventListener('mousemove', drawRectangle);
-    window.addEventListener('touchmove', drawRectangle, { passive: false });
-    window.addEventListener('mouseup', endRectangle);
-    window.addEventListener('touchend', endRectangle);
-
-    document.getElementById('boxHeightInput').oninput = function() {
-        selectionBox.style.height = this.value + "px";
-    };
+    pdfWrapper.addEventListener('mousedown', startSelection);
+    window.addEventListener('mousemove', moveSelection);
+    window.addEventListener('mouseup', () => isDrawing = false);
+    pdfWrapper.addEventListener('touchstart', (e) => { startSelection(e); e.preventDefault(); }, {passive: false});
+    window.addEventListener('touchmove', (e) => { moveSelection(e); }, {passive: false});
+    window.addEventListener('touchend', () => isDrawing = false);
 
     document.getElementById('fileInput').onchange = async function() {
         const file = this.files[0];
         if (!file) return;
         const arrayBuffer = await file.arrayBuffer();
         currentPdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-        const page = await currentPdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.2 });
-        displayScale = 1.2;
+        pdfPage = await currentPdf.getPage(1);
+        const viewport = pdfPage.getViewport({ scale: 1.5 });
         displayCanvas.width = viewport.width;
         displayCanvas.height = viewport.height;
-        await page.render({ canvasContext: displayCanvas.getContext('2d'), viewport: viewport }).promise;
-        document.getElementById('pdfWrapper').style.display = "inline-block";
-        document.getElementById('status').innerText = "วางกรอบแดงทับส่วนที่ต้องการ";
+        await pdfPage.render({ canvasContext: displayCanvas.getContext('2d'), viewport: viewport }).promise;
+        pdfWrapper.style.display = "inline-block";
     };
 
-    async function processUltraSharp() {
-        if (!currentPdf) return;
-        const status = document.getElementById('status');
-        const splitCount = parseInt(document.getElementById('splitCount').value);
-        status.innerText = "กำลังเรนเดอร์ความละเอียดสูง...";
+    async function processSmoothSharp() {
+        if (!pdfPage || selectionBox.style.display === 'none') return;
+        document.getElementById('status').innerText = "กำลังประมวลผลความละเอียดสูง...";
 
-        const page = await currentPdf.getPage(1);
-        const hdScale = 6.0;
-        const hdViewport = page.getViewport({ scale: hdScale });
+        const rect = displayCanvas.getBoundingClientRect();
+        const boxLeft = parseFloat(selectionBox.style.left) / rect.width;
+        const boxTop = parseFloat(selectionBox.style.top) / rect.height;
+        const boxW = parseFloat(selectionBox.style.width) / rect.width;
+        const boxH = parseFloat(selectionBox.style.height) / rect.height;
+
+        // ใช้ Scale 8.0 เพื่อความคมชัดสูงสุดจากไฟล์ PDF
+        const hdScale = 8.0;
+        const hdViewport = pdfPage.getViewport({ scale: hdScale });
         const hdCanvas = document.createElement('canvas');
-        const hdCtx = hdCanvas.getContext('2d', { alpha: false });
         hdCanvas.width = hdViewport.width;
         hdCanvas.height = hdViewport.height;
+        await pdfPage.render({ canvasContext: hdCanvas.getContext('2d'), viewport: hdViewport }).promise;
 
-        await page.render({ canvasContext: hdCtx, viewport: hdViewport, intent: 'print' }).promise;
+        const cropX = hdCanvas.width * boxLeft;
+        const cropY = hdCanvas.height * boxTop;
+        const cropW = hdCanvas.width * boxW;
+        const cropH = hdCanvas.height * boxH;
 
-        const ratio = hdScale / displayScale;
-        const cropY = parseInt(selectionBox.style.top) * ratio;
-        const cropH = parseInt(selectionBox.style.height) * ratio;
-        const cropW = hdCanvas.width;
-        const partW = cropW;
+        const splitCount = parseInt(document.getElementById('splitCount').value) || 1;
         const partH = cropH / splitCount;
 
-        const resultCanvas = document.getElementById('previewCanvas');
-        const rCtx = resultCanvas.getContext('2d');
-        resultCanvas.width = partH;
-        resultCanvas.height = partW * splitCount;
-        rCtx.imageSmoothingEnabled = true;
-        rCtx.imageSmoothingQuality = 'high';
+        const previewCanvas = document.getElementById('previewCanvas');
+        const pCtx = previewCanvas.getContext('2d');
+
+        // กลับมาใช้ความคมแบบดั้งเดิม ไม่บีบขนาดพิกเซลหน้ากว้าง เพื่อให้แอปเครื่องปริ้นจัดการความละเอียดเอง
+        previewCanvas.width = partH; 
+        previewCanvas.height = cropW * splitCount;
+
+        // เร่ง Contrast และ GrayScale เล็กน้อยผ่าน Filter (แทนการแก้พิกเซลแบบ Hard-edge)
+        pCtx.filter = 'contrast(1.4) grayscale(1)';
 
         for (let i = 0; i < splitCount; i++) {
-            const piece = document.createElement('canvas');
-            const pCtx = piece.getContext('2d');
-            piece.width = partH; piece.height = partW;
-            pCtx.translate(piece.width/2, piece.height/2);
-            pCtx.rotate(-90 * Math.PI / 180);
-            pCtx.drawImage(hdCanvas, 0, cropY + (i * partH), partW, partH, -partW/2, -partH/2, partW, partH);
-            rCtx.drawImage(piece, 0, i * partW);
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = partH; tempCanvas.height = cropW;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.translate(tempCanvas.width/2, tempCanvas.height/2);
+            tCtx.rotate(-90 * Math.PI / 180);
+            tCtx.drawImage(hdCanvas, cropX, cropY + (i * partH), cropW, partH, -cropW/2, -partH/2, cropW, partH);
+            pCtx.drawImage(tempCanvas, 0, i * cropW);
         }
 
-        resultCanvas.toBlob((blob) => {
-            finalBlob = blob;
-            status.innerText = "✅ คมกริบ! พร้อมส่ง";
-            resultCanvas.style.display = "inline-block";
-            document.getElementById('shareBtn').style.display = "block";
-        }, 'image/png', 1.0);
+        pCtx.filter = 'none';
+        previewCanvas.style.display = "inline-block";
+        document.getElementById('shareBtn').style.display = "block";
+        document.getElementById('status').innerText = "✅ เสร็จแล้ว! คมชัดแบบ High-Res";
+        previewCanvas.toBlob(blob => { finalBlob = blob; }, 'image/png');
     }
 
     async function shareToPrinter() {
-        const file = new File([finalBlob], "label_hd.png", { type: "image/png" });
+        if (!finalBlob) return;
+        const file = new File([finalBlob], "label.png", { type: "image/png" });
         if (navigator.share) {
-            await navigator.share({ files: [file], title: 'Print Label HD' });
+            navigator.share({ files: [file], title: 'iShip Print' });
         } else {
             const link = document.createElement('a');
-            link.download = "label_hd.png"; link.href = URL.createObjectURL(finalBlob); link.click();
+            link.href = URL.createObjectURL(finalBlob);
+            link.download = "label.png";
+            link.click();
         }
     }
 </script>
-
 </body>
 </html>
