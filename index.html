@@ -1,9 +1,261 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-    <title>Index Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>METIST - Order Online</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --pink: #f8c8dc; --pink-dark: #d48398; --bg: #fdf2f7; --text: #5a3d45; --cutter-color: #26a69a; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); }
+        .header { text-align: center; margin-bottom: 15px; }
+        .header h1 { color: var(--pink-dark); margin: 0; font-size: 1.8rem; }
+        .header p { color: #bca0a0; margin: 0; font-size: 0.8rem; letter-spacing: 2px; }
+        .card { background: #fff; border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(212, 131, 152, 0.12); position: relative; }
+        h2 { font-size: 1.1rem; margin-top: 0; margin-bottom: 12px; }
+        input[type="text"], textarea { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid #f2cbd3; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; font-family: inherit; }
+        textarea { height: 100px; resize: none; }
+        
+        /* ปุ่มเครื่องตัดแบบชิ้นเดียว */
+        .cutter-container { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .btn-order-cutter { background: #eee; color: #888; border: none; border-radius: 12px; padding: 12px 20px; font-weight: bold; cursor: pointer; flex: 1; font-size: 15px; transition: 0.3s; }
+        .btn-order-cutter.selected { background: var(--cutter-color); color: white; }
+        .check-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: bold; color: var(--cutter-color); cursor: pointer; }
+        .check-label input { width: 20px !important; height: 20px !important; margin: 0 !important; }
+
+        .flower-flex-container { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 10px; width: 100%; }
+        .color-item { flex: 0 0 65px; text-align: center; cursor: pointer; }
+        .color-btn { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #fff; outline: 1px solid #eee; margin: 0 auto; display: block; }
+        .count { font-size: 9px; margin-top: 5px; font-weight: bold; line-height: 1.2; }
+        .type-selector { display: flex; gap: 10px; background: #fff0f3; padding: 8px; border-radius: 12px; justify-content: center; margin-bottom: 15px; font-size: 13px; }
+        .grid-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .square-btn { border: 1px solid rgba(0,0,0,0.05); border-radius: 10px; padding: 10px 2px; color: #fff; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-reset-mini { position: absolute; top: 15px; right: 15px; background: #eee; color: #888; border: none; border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .btn-submit { width: 100%; background: var(--pink-dark); color: white; padding: 15px; border: none; border-radius: 18px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .payment-section { text-align: center; border-top: 2px dashed #f2cbd3; padding-top: 15px; margin-top: 15px; }
+        .qr-code { width: 200px; height: 200px; object-fit: contain; margin: 10px auto; border: 5px solid white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .summary-bar { text-align:center; background: #fff0f3; border: 2px dashed var(--pink); border-radius: 15px; padding: 10px; margin: 10px 0; }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Index Page</h1>
+
+<div class="header">
+    <h1>🌸 METIST ✨</h1>
+    <p>FLOWER STUDIO - Order Online</p>
+</div>
+
+<div class="card">
+    <h2>👤 ข้อมูลการติดต่อและจัดส่ง</h2>
+    <input type="text" id="custName" placeholder="ชื่อTiktok หรือไลน์">
+    <textarea id="custAddress" placeholder="ชื่อ ที่อยู่ เบอร์โทร สำหรับจัดส่ง"></textarea>
+</div>
+
+<div class="card" style="border: 2px solid var(--cutter-color); background: #f0fdfa;">
+    <h2 style="color: var(--cutter-color);">✂️ เครื่องตัดริบบิ้น (125฿)</h2>
+    <div class="cutter-container">
+        <button id="cutterBtn" class="btn-order-cutter" onclick="toggleCutter()">สั่งเครื่องตัดริบบิ้น ✂️</button>
+        <label class="check-label">
+            <input type="checkbox" id="hasSwitch" onchange="calculateAutoPrice()"> ติดสวิตช์ (+20฿)
+        </label>
+    </div>
+</div>
+
+<div class="card">
+    <h2>🌹 เลือกสีดอกไม้</h2>
+    <button class="btn-reset-mini" onclick="resetPart('flowers')">ล้าง</button>
+    <div class="type-selector">
+        <label><input type="radio" name="flowerType" value="กริตเตอร์" checked onchange="renderFlowers()"> สีกริตเตอร์</label>
+        <label><input type="radio" name="flowerType" value="พื้น" onchange="renderFlowers()"> สีพื้น</label>
+    </div>
+    <div class="flower-flex-container" id="flower-grid"></div>
+</div>
+
+<div class="card">
+    <h2>📦 เลือกกระดาษห่อ</h2>
+    <button class="btn-reset-mini" onclick="resetPart('papers')">ล้าง</button>
+    <div class="grid-options" id="paper-grid"></div>
+    <div id="paperChoice" style="margin-top:8px; font-size:12px; font-weight:bold; color:var(--pink-dark)">เลือก: -</div>
+</div>
+
+<div class="card">
+    <h2>🎀 เลือกโบว์</h2>
+    <button class="btn-reset-mini" onclick="resetPart('bows')">ล้าง</button>
+    <div class="grid-options" id="bow-grid"></div>
+    <div id="bowChoice" style="margin-top:8px; font-size:12px; font-weight:bold; color:var(--pink-dark)">เลือก: -</div>
+</div>
+
+<div class="card">
+    <h2>✨ ของตกแต่ง</h2>
+	<p style="font-size:12px; color:#888;">(ผีเสื้อ+5 มงกุฎ+10 ไฟ+25 ) 10ดอกขึ้นไป ฟรี!</p>
+    <button class="btn-reset-mini" onclick="resetPart('extras')">ล้าง</button>
+    <div class="grid-options" id="extra-grid"></div>
+    <div id="extraChoice" style="margin-top:8px; font-size:12px; font-weight:bold; color:var(--pink-dark)">เลือก: -</div>
+</div>
+
+<div class="card">
+    <h2>💳 ยอดชำระและสแกนจ่าย</h2>
+    <div class="summary-bar" id="summary-text">ยอดรวม: 0 ฿</div>
+    
+    <div class="payment-section">
+        <p style="margin:0; font-weight:bold; color:var(--pink-dark);">สแกนจ่ายเงินที่นี่</p>
+        <img src="QR.jpg" alt="QR Code" class="qr-code">
+        <p style="font-size:12px; color:#888;">(พร้อมเพย์ / เมธา พลายละหาญ)</p>
+    </div>
+
+    <label style="font-size: 14px; font-weight:bold; display: block; margin-top: 15px;">แนบหลักฐานการโอนเงิน:</label>
+    <input type="file" id="slipInput" accept="image/*" style="margin-top:10px;">
+</div>
+
+<button class="btn-submit" id="submitBtn" onclick="submitToAdmin()">ส่งออเดอร์ให้ร้าน 🌸</button>
+
+<script>
+    const SUPABASE_URL = 'https://hcxegxzyaeckcfybqmuw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeGVneHp5YWVja2NmeWJxbXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Njk2NDAsImV4cCI6MjA4ODM0NTY0MH0.V24YgTlKrFL9LpzUFI8O9beRA9olxW-LYvsaMaVuO4w';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const colors = { แดง: "#e63946", ขาว: "#ffffff", ชมพู: "#f7b2cc", น้ำเงิน: "#457b9d", ม่วง: "#9b5de5", ดำ: "#333333", ชมพูแก้ว: "#ff007f", แดงแก้ว: "#b91d1d" };
+    const priceTable = { 1: 49, 3: 119, 5: 189, 7: 249, 10: 359, 15: 459, 20: 549 };
+    const extraPriceDefault = { ผีเสื้อ: 5, มงกุฎ: 10, ไฟLED: 25, ไข่มุก: 0, ขอบลูกไม้: 0, ขอบมุก: 0, การ์ด: 0 };
+    
+    let currentFlowerData = { "พื้น": {}, "กริตเตอร์": {} };
+    let selectedPapers = []; 
+    let selectedBows = []; 
+    let selectedExtras = {};
+    let isCutterSelected = false; 
+
+    function renderFlowers() {
+        const flowerList = ["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง"];
+        document.getElementById("flower-grid").innerHTML = flowerList.map(c => `
+            <div class="color-item" onclick="addFlower('${c}')">
+                <div class="color-btn" style="background:${colors[c]}"></div>
+                <div class="count">${c}<br>${currentFlowerData["พื้น"][c]||0}/${currentFlowerData["กริตเตอร์"][c]||0}</div>
+            </div>`).join("");
+    }
+
+    function addFlower(color) {
+        const type = document.querySelector('input[name="flowerType"]:checked').value;
+        currentFlowerData[type][color] = (currentFlowerData[type][color] || 0) + 1;
+        renderFlowers(); calculateAutoPrice();
+    }
+
+    function toggleCutter() {
+        isCutterSelected = !isCutterSelected;
+        const btn = document.getElementById("cutterBtn");
+        if(isCutterSelected) {
+            btn.classList.add("selected");
+            btn.innerText = "เลือกเครื่องตัดแล้ว ✓";
+        } else {
+            btn.classList.remove("selected");
+            btn.innerText = "สั่งเครื่องตัดริบบิ้น ✂️";
+        }
+        calculateAutoPrice();
+    }
+
+    function calculateAutoPrice() {
+        let totalFlowers = 0;
+        for(let t in currentFlowerData) for(let c in currentFlowerData[t]) totalFlowers += currentFlowerData[t][c];
+        
+        let flowerPrice = 0;
+        if (totalFlowers > 0) {
+            let keys = Object.keys(priceTable).map(Number).sort((a,b) => b-a);
+            let baseKey = keys.find(k => k <= totalFlowers) || 1;
+            flowerPrice = Math.round((priceTable[baseKey] / baseKey) * totalFlowers);
+        }
+
+        let extraTotal = 0;
+        let isFree = totalFlowers >= 10;
+        Object.keys(selectedExtras).forEach(e => {
+            let p = isFree && ["มงกุฎ", "ผีเสื้อ", "ไข่มุก", "การ์ด","ไฟLED"].includes(e) ? 0 : extraPriceDefault[e];
+            extraTotal += (selectedExtras[e] * p);
+        });
+
+        let cutterTotal = 0;
+        if(isCutterSelected) {
+            const hasSw = document.getElementById("hasSwitch").checked;
+            cutterTotal = 125 + (hasSw ? 20 : 0);
+        }
+
+        const finalTotal = flowerPrice + extraTotal + cutterTotal;
+        document.getElementById("summary-text").innerHTML = `<b>ยอดรวมทั้งหมด: ${finalTotal} ฿</b>`;
+        return finalTotal;
+    }
+
+    function resetPart(part) {
+        if (part === 'flowers') currentFlowerData = { "พื้น": {}, "กริตเตอร์": {} };
+        if (part === 'papers') { selectedPapers = []; document.getElementById('paperChoice').innerText = "เลือก: -"; }
+        if (part === 'bows') { selectedBows = []; document.getElementById('bowChoice').innerText = "เลือก: -"; }
+        if (part === 'extras') { selectedExtras = {}; document.getElementById('extraChoice').innerText = "เลือก: -"; }
+        renderFlowers(); calculateAutoPrice();
+    }
+
+    async function submitToAdmin() {
+    const btn = document.getElementById("submitBtn");
+    const name = document.getElementById("custName").value;
+    const address = document.getElementById("custAddress").value;
+    const total = calculateAutoPrice();
+    const slipFile = document.getElementById("slipInput").files[0];
+
+    if(!name || !address || total == 0 || !slipFile) { 
+        alert("กรุณากรอกข้อมูลชื่อ-ที่อยู่ และแนบสลิปให้ครบถ้วนนะคะ"); 
+        return; 
+    }
+    
+    btn.disabled = true;
+    btn.innerText = "กำลังอัปโหลดสลิป...";
+
+    try {
+        // 1. อัปโหลดไฟล์ไปที่ Storage bucket ชื่อ 'slips'
+			const fileName = `slip_${Date.now()}.png`; 
+        const { data: uploadData, error: uploadError } = await _supabase.storage
+            .from('slips')
+            .upload(fileName, slipFile);
+
+        if (uploadError) throw uploadError;
+
+        // 2. ดึง URL ของรูปออกมา
+        const { data: urlData } = _supabase.storage.from('slips').getPublicUrl(fileName);
+        const finalSlipUrl = urlData.publicUrl;
+
+        btn.innerText = "กำลังส่งออเดอร์...";
+
+        // 3. บันทึกลงฐานข้อมูล
+        const orderDetails = {
+            address: address,
+            isCutter: isCutterSelected,
+            qty: isCutterSelected ? 1 : 0,
+            hasSwitch: document.getElementById("hasSwitch").checked,
+            flowers: currentFlowerData,
+            paper: selectedPapers.join(", "),
+            bow: selectedBows.join(", "),
+            extras: selectedExtras,
+            basePrice: total
+        };
+
+        const { error: insertError } = await _supabase.from('orders').insert([{
+            name: name, 
+            total: parseFloat(total), 
+            status: false,
+            details: orderDetails,
+            slip_url: finalSlipUrl // เก็บลิงก์รูปจริง
+        }]);
+
+        if (insertError) throw insertError;
+
+        alert("ส่งออเดอร์เรียบร้อยแล้วค่ะ ขอบคุณมากนะคะ ✨"); 
+        location.reload(); 
+
+    } catch (err) {
+        alert("เกิดข้อผิดพลาด: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "ส่งออเดอร์ให้ร้าน 🌸";
+    }
+}
+
+    renderFlowers();
+    document.getElementById("paper-grid").innerHTML = ["ดำ", "ขาว", "ชมพู", "แดง"].map(c => `<button class="square-btn" style="background:${colors[c]}; color:${c==='ขาว'?'#555':'#fff'}" onclick="selectedPapers.push('${c}'); document.getElementById('paperChoice').innerText='เลือก: '+selectedPapers.join(', ');">${c}</button>`).join("");
+    document.getElementById("bow-grid").innerHTML = ["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง"].map(c => `<button class="square-btn" style="background:${colors[c]}; color:${c==='ขาว'?'#555':'#fff'}" onclick="selectedBows.push('${c}'); document.getElementById('bowChoice').innerText='เลือก: '+selectedBows.join(', ');">${c}</button>`).join("");
+    document.getElementById("extra-grid").innerHTML = Object.keys(extraPriceDefault).map(e => `<button class="square-btn" style="background:#f2b5d4; color:#5a3d45;" onclick="selectedExtras['${e}']=(selectedExtras['${e}']||0)+1; calculateAutoPrice(); document.getElementById('extraChoice').innerText='เลือก: '+Object.keys(selectedExtras).filter(k=>selectedExtras[k]>0).map(k=>k+'x'+selectedExtras[k]).join(', ');">${e}</button>`).join("");
+</script>
 </body>
 </html>
