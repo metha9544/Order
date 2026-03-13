@@ -36,6 +36,28 @@
         .payment-section { text-align: center; border-top: 2px dashed #f2cbd3; padding-top: 15px; margin-top: 15px; }
         .qr-code { width: 200px; height: 200px; object-fit: contain; margin: 10px auto; border: 5px solid white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .summary-bar { text-align:center; background: #fff0f3; border: 2px dashed var(--pink); border-radius: 15px; padding: 10px; margin: 10px 0; }
+
+        /* หน้าต่างแจ้งเตือนส่งออเดอร์สำเร็จ */
+        .success-modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; 
+            width: 100%; height: 100%; background: rgba(0,0,0,0.8); 
+            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+        }
+        .success-content {
+            background: white; width: 100%; max-width: 350px; 
+            padding: 25px; border-radius: 25px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .success-content h2 { color: #51cf66; margin-bottom: 10px; }
+        .success-content p { font-size: 14px; line-height: 1.5; color: #666; margin-bottom: 20px; }
+        .contact-group { display: flex; flex-direction: column; gap: 10px; }
+        .btn-contact {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 14px; border-radius: 15px; text-decoration: none; font-weight: bold; color: white; font-size: 15px;
+        }
+        .btn-tiktok { background: #000000; }
+        .btn-line { background: #06C755; }
     </style>
 </head>
 <body>
@@ -108,6 +130,27 @@
 </div>
 
 <button class="btn-submit" id="submitBtn" onclick="submitToAdmin()">ส่งออเดอร์ให้ร้าน 🌸</button>
+
+<div id="successModal" class="success-modal">
+    <div class="success-content">
+        <h2>ส่งออเดอร์สำเร็จ! ✨</h2>
+        <p>กรุณาส่งสติกเกอร์หรือข้อความทักทายเข้ามา<br><b>ในช่องทางที่คุณได้แจ้งชื่อไว้</b><br>เพื่อให้ทางร้านยืนยันออเดอร์นะคะ</p>
+        
+        <div class="contact-group">
+    <a href="https://www.tiktok.com/@metist_flower.studio?_r=1&_t=ZS-94exSzzsyKv" class="btn-contact btn-tiktok" target="_blank">
+        💬 ทักทาง TikTok
+    </a>
+    <a href="https://line.me/ti/p/~@663ofvnt" class="btn-contact btn-line" target="_blank">
+        🟢 ทักทาง LINE
+    </a>
+</div>
+
+        
+        <button onclick="location.reload()" style="margin-top: 25px; background: none; border: none; color: #aaa; text-decoration: underline; cursor: pointer; font-size: 13px;">
+            ปิดและกลับหน้าหลัก
+        </button>
+    </div>
+</div>
 
 <script>
     const SUPABASE_URL = 'https://hcxegxzyaeckcfybqmuw.supabase.co';
@@ -190,67 +233,65 @@
     }
 
     async function submitToAdmin() {
-    const btn = document.getElementById("submitBtn");
-    const name = document.getElementById("custName").value;
-    const address = document.getElementById("custAddress").value;
-    const total = calculateAutoPrice();
-    const slipFile = document.getElementById("slipInput").files[0];
+        const btn = document.getElementById("submitBtn");
+        const name = document.getElementById("custName").value;
+        const address = document.getElementById("custAddress").value;
+        const total = calculateAutoPrice();
+        const slipFile = document.getElementById("slipInput").files[0];
 
-    if(!name || !address || total == 0 || !slipFile) { 
-        alert("กรุณากรอกข้อมูลชื่อ-ที่อยู่ และแนบสลิปให้ครบถ้วนนะคะ"); 
-        return; 
+        if(!name || !address || total == 0 || !slipFile) { 
+            alert("กรุณากรอกข้อมูลชื่อ-ที่อยู่ และแนบสลิปให้ครบถ้วนนะคะ"); 
+            return; 
+        }
+        
+        btn.disabled = true;
+        btn.innerText = "กำลังอัปโหลดสลิป...";
+
+        try {
+            const fileName = `slip_${Date.now()}.png`; 
+            const { data: uploadData, error: uploadError } = await _supabase.storage
+                .from('slips')
+                .upload(fileName, slipFile);
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = _supabase.storage.from('slips').getPublicUrl(fileName);
+            const finalSlipUrl = urlData.publicUrl;
+
+            btn.innerText = "กำลังส่งออเดอร์...";
+
+            const orderDetails = {
+                address: address,
+                isCutter: isCutterSelected,
+                qty: isCutterSelected ? 1 : 0,
+                hasSwitch: document.getElementById("hasSwitch").checked,
+                flowers: currentFlowerData,
+                paper: selectedPapers.join(", "),
+                bow: selectedBows.join(", "),
+                extras: selectedExtras,
+                basePrice: total
+            };
+
+            const { error: insertError } = await _supabase.from('orders').insert([{
+                name: name, 
+                total: parseFloat(total), 
+                status: false,
+                details: orderDetails,
+                slip_url: finalSlipUrl
+            }]);
+
+            if (insertError) throw insertError;
+
+            // แสดงหน้าต่างแจ้งเตือนสำเร็จ
+            document.getElementById("successModal").style.display = "flex";
+            btn.innerText = "ส่งออเดอร์สำเร็จแล้ว ✨";
+
+        } catch (err) {
+            alert("เกิดข้อผิดพลาด: " + err.message);
+            btn.disabled = false;
+            btn.innerText = "ส่งออเดอร์ให้ร้าน 🌸";
+        }
     }
-    
-    btn.disabled = true;
-    btn.innerText = "กำลังอัปโหลดสลิป...";
-
-    try {
-        // 1. อัปโหลดไฟล์ไปที่ Storage bucket ชื่อ 'slips'
-			const fileName = `slip_${Date.now()}.png`; 
-        const { data: uploadData, error: uploadError } = await _supabase.storage
-            .from('slips')
-            .upload(fileName, slipFile);
-
-        if (uploadError) throw uploadError;
-
-        // 2. ดึง URL ของรูปออกมา
-        const { data: urlData } = _supabase.storage.from('slips').getPublicUrl(fileName);
-        const finalSlipUrl = urlData.publicUrl;
-
-        btn.innerText = "กำลังส่งออเดอร์...";
-
-        // 3. บันทึกลงฐานข้อมูล
-        const orderDetails = {
-            address: address,
-            isCutter: isCutterSelected,
-            qty: isCutterSelected ? 1 : 0,
-            hasSwitch: document.getElementById("hasSwitch").checked,
-            flowers: currentFlowerData,
-            paper: selectedPapers.join(", "),
-            bow: selectedBows.join(", "),
-            extras: selectedExtras,
-            basePrice: total
-        };
-
-        const { error: insertError } = await _supabase.from('orders').insert([{
-            name: name, 
-            total: parseFloat(total), 
-            status: false,
-            details: orderDetails,
-            slip_url: finalSlipUrl // เก็บลิงก์รูปจริง
-        }]);
-
-        if (insertError) throw insertError;
-
-        alert("ส่งออเดอร์เรียบร้อยแล้วค่ะ ขอบคุณมากนะคะ ✨"); 
-        location.reload(); 
-
-    } catch (err) {
-        alert("เกิดข้อผิดพลาด: " + err.message);
-        btn.disabled = false;
-        btn.innerText = "ส่งออเดอร์ให้ร้าน 🌸";
-    }
-}
 
     renderFlowers();
     document.getElementById("paper-grid").innerHTML = ["ดำ", "ขาว", "ชมพู", "แดง"].map(c => `<button class="square-btn" style="background:${colors[c]}; color:${c==='ขาว'?'#555':'#fff'}" onclick="selectedPapers.push('${c}'); document.getElementById('paperChoice').innerText='เลือก: '+selectedPapers.join(', ');">${c}</button>`).join("");
