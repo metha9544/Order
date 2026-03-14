@@ -16,13 +16,13 @@
         input[type="text"], textarea { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid #f2cbd3; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; font-family: inherit; }
         textarea { height: 100px; resize: none; }
         
-        /* ระบบเลือกเครื่องตัดใหม่ */
-        .cutter-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 8px; }
-        .cutter-info { font-size: 14px; font-weight: bold; color: var(--text); }
-        .cutter-price { font-size: 12px; color: var(--cutter-color); display: block; }
-        .qty-control { display: flex; align-items: center; gap: 12px; }
-        .btn-qty { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--cutter-color); color: white; font-weight: bold; cursor: pointer; }
-        .qty-val { font-weight: bold; min-width: 20px; text-align: center; }
+        /* UI เลือกจำนวนเครื่องตัดแยกประเภท */
+        .cutter-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 12px; border: 1px solid #eee; }
+        .cutter-text { font-size: 14px; font-weight: bold; color: var(--text); }
+        .cutter-price-small { font-size: 11px; color: var(--cutter-color); display: block; }
+        .qty-box { display: flex; align-items: center; gap: 15px; background: white; padding: 5px 12px; border-radius: 10px; border: 1px solid var(--cutter-color); }
+        .btn-qty { background: none; border: none; font-size: 20px; font-weight: bold; color: var(--cutter-color); cursor: pointer; }
+        .qty-num { font-weight: bold; font-size: 16px; min-width: 20px; text-align: center; }
 
         .flower-flex-container { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 10px; width: 100%; }
         .color-item { flex: 0 0 65px; text-align: center; cursor: pointer; }
@@ -38,24 +38,12 @@
         .qr-code { width: 200px; height: 200px; object-fit: contain; margin: 10px auto; border: 5px solid white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .summary-bar { text-align:center; background: #fff0f3; border: 2px dashed var(--pink); border-radius: 15px; padding: 10px; margin: 10px 0; }
 
-        .success-modal {
-            display: none; position: fixed; z-index: 2000; left: 0; top: 0; 
-            width: 100%; height: 100%; background: rgba(0,0,0,0.8); 
-            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
-        }
-        .success-content {
-            background: white; width: 100%; max-width: 350px; 
-            padding: 25px; border-radius: 25px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out;
-        }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .success-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .success-content { background: white; width: 100%; max-width: 350px; padding: 25px; border-radius: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .success-content h2 { color: #51cf66; margin-bottom: 10px; }
         .success-content p { font-size: 14px; line-height: 1.5; color: #666; margin-bottom: 20px; }
         .contact-group { display: flex; flex-direction: column; gap: 10px; }
-        .btn-contact {
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            padding: 14px; border-radius: 15px; text-decoration: none; font-weight: bold; color: white; font-size: 15px;
-        }
+        .btn-contact { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; border-radius: 15px; text-decoration: none; font-weight: bold; color: white; font-size: 15px; }
         .btn-tiktok { background: #000000; }
         .btn-line { background: #06C755; }
     </style>
@@ -76,21 +64,21 @@
 <div class="card" style="border: 2px solid var(--cutter-color); background: #f0fdfa;">
     <h2 style="color: var(--cutter-color);">✂️ เครื่องตัดริบบิ้น</h2>
     
-    <div class="cutter-row">
-        <div class="cutter-info">แบบปกติ<span class="cutter-price">125฿ / เครื่อง</span></div>
-        <div class="qty-control">
-            <button class="btn-qty" onclick="updateCutter('normal', -1)">-</button>
-            <span class="qty-val" id="qty-normal">0</span>
-            <button class="btn-qty" onclick="updateCutter('normal', 1)">+</button>
+    <div class="cutter-item">
+        <div class="cutter-text">แบบธรรมดา <span class="cutter-price-small">125฿ / เครื่อง</span></div>
+        <div class="qty-box">
+            <button class="btn-qty" onclick="changeCutterQty('normal', -1)">-</button>
+            <span class="qty-num" id="qtyNormal">0</span>
+            <button class="btn-qty" onclick="changeCutterQty('normal', 1)">+</button>
         </div>
     </div>
 
-    <div class="cutter-row">
-        <div class="cutter-info">แบบติดสวิตช์<span class="cutter-price">145฿ / เครื่อง</span></div>
-        <div class="qty-control">
-            <button class="btn-qty" onclick="updateCutter('switch', -1)">-</button>
-            <span class="qty-val" id="qty-switch">0</span>
-            <button class="btn-qty" onclick="updateCutter('switch', 1)">+</button>
+    <div class="cutter-item">
+        <div class="cutter-text">แบบติดสวิตช์ <span class="cutter-price-small">145฿ / เครื่อง</span></div>
+        <div class="qty-box">
+            <button class="btn-qty" onclick="changeCutterQty('switch', -1)">-</button>
+            <span class="qty-num" id="qtySwitch">0</span>
+            <button class="btn-qty" onclick="changeCutterQty('switch', 1)">+</button>
         </div>
     </div>
 </div>
@@ -130,13 +118,11 @@
 <div class="card">
     <h2>💳 ยอดชำระและสแกนจ่าย</h2>
     <div class="summary-bar" id="summary-text">ยอดรวม: 0 ฿</div>
-    
     <div class="payment-section">
         <p style="margin:0; font-weight:bold; color:var(--pink-dark);">สแกนจ่ายเงินที่นี่</p>
         <img src="QR.jpg" alt="QR Code" class="qr-code">
         <p style="font-size:12px; color:#888;">(พร้อมเพย์ / เมธา พลายละหาญ)</p>
     </div>
-
     <label style="font-size: 14px; font-weight:bold; display: block; margin-top: 15px;">แนบหลักฐานการโอนเงิน:</label>
     <input type="file" id="slipInput" accept="image/*" style="margin-top:10px;">
 </div>
@@ -146,10 +132,10 @@
 <div id="successModal" class="success-modal">
     <div class="success-content">
         <h2>ส่งออเดอร์สำเร็จ! ✨</h2>
-        <p>กรุณาส่งสติกเกอร์หรือข้อความทักทายเข้ามา<br><b>ในช่องทางที่คุณได้แจ้งชื่อไว้</b><br>เพื่อให้ทางร้านยืนยันออเดอร์นะคะ</p>
+        <p>กรุณาส่งสติกเกอร์หรือข้อความทักทายเข้ามา<br><b>ในช่องทางที่คุณได้แจ้งชื่อไว้</b></p>
         <div class="contact-group">
             <a href="https://www.tiktok.com/@metist_flower.studio?_r=1&_t=ZS-94exSzzsyKv" class="btn-contact btn-tiktok" target="_blank">💬 ทักทาง TikTok</a>
-            <a href="https://lin.ee/cX7y8b8" class="btn-contact btn-line" target="_blank">🟢 ทักทาง LINE</a>
+            <a href="https://line.me/ti/p/~@663ofvnt" class="btn-contact btn-line" target="_blank">🟢 ทักทาง LINE</a>
         </div>
         <button onclick="location.reload()" style="margin-top: 25px; background: none; border: none; color: #aaa; text-decoration: underline; cursor: pointer; font-size: 13px;">ปิดและกลับหน้าหลัก</button>
     </div>
@@ -169,12 +155,12 @@
     let selectedBows = []; 
     let selectedExtras = {};
     
-    // ข้อมูลเครื่องตัดใหม่
-    let cutterQty = { normal: 0, switch: 0 };
+    // ตัวแปรเก็บจำนวนเครื่องตัดแยกประเภท
+    let cutter = { normal: 0, switch: 0 };
 
-    function updateCutter(type, change) {
-        cutterQty[type] = Math.max(0, cutterQty[type] + change);
-        document.getElementById(`qty-${type}`).innerText = cutterQty[type];
+    function changeCutterQty(type, val) {
+        cutter[type] = Math.max(0, cutter[type] + val);
+        document.getElementById(type === 'normal' ? 'qtyNormal' : 'qtySwitch').innerText = cutter[type];
         calculateAutoPrice();
     }
 
@@ -211,8 +197,8 @@
             extraTotal += (selectedExtras[e] * p);
         });
 
-        // คำนวณราคาเครื่องตัด
-        let cutterTotal = (cutterQty.normal * 125) + (cutterQty.switch * 145);
+        // คำนวณราคาเครื่องตัดแบบแยกประเภทแล้วบวกกัน
+        let cutterTotal = (cutter.normal * 125) + (cutter.switch * 145);
 
         const finalTotal = flowerPrice + extraTotal + cutterTotal;
         document.getElementById("summary-text").innerHTML = `<b>ยอดรวมทั้งหมด: ${finalTotal} ฿</b>`;
@@ -255,10 +241,15 @@
 
             btn.innerText = "กำลังส่งออเดอร์...";
 
+            // ส่งข้อมูลกลับไปที่ Admin ให้ระบุชัดเจนว่ามีกี่เครื่อง
             const orderDetails = {
                 address: address,
-                cutterNormal: cutterQty.normal,
-                cutterSwitch: cutterQty.switch,
+                isCutter: (cutter.normal + cutter.switch) > 0, 
+                qty: (cutter.normal + cutter.switch), 
+                cutterDetails: {
+                    normal: cutter.normal,
+                    withSwitch: cutter.switch
+                },
                 flowers: currentFlowerData,
                 paper: selectedPapers.join(", "),
                 bow: selectedBows.join(", "),
