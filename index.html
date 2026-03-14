@@ -16,12 +16,13 @@
         input[type="text"], textarea { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid #f2cbd3; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; font-family: inherit; }
         textarea { height: 100px; resize: none; }
         
-        /* ปุ่มเครื่องตัดแบบชิ้นเดียว */
-        .cutter-container { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .btn-order-cutter { background: #eee; color: #888; border: none; border-radius: 12px; padding: 12px 20px; font-weight: bold; cursor: pointer; flex: 1; font-size: 15px; transition: 0.3s; }
-        .btn-order-cutter.selected { background: var(--cutter-color); color: white; }
-        .check-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: bold; color: var(--cutter-color); cursor: pointer; }
-        .check-label input { width: 20px !important; height: 20px !important; margin: 0 !important; }
+        /* ระบบเลือกเครื่องตัดใหม่ */
+        .cutter-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 8px; }
+        .cutter-info { font-size: 14px; font-weight: bold; color: var(--text); }
+        .cutter-price { font-size: 12px; color: var(--cutter-color); display: block; }
+        .qty-control { display: flex; align-items: center; gap: 12px; }
+        .btn-qty { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--cutter-color); color: white; font-weight: bold; cursor: pointer; }
+        .qty-val { font-weight: bold; min-width: 20px; text-align: center; }
 
         .flower-flex-container { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 10px; width: 100%; }
         .color-item { flex: 0 0 65px; text-align: center; cursor: pointer; }
@@ -37,7 +38,6 @@
         .qr-code { width: 200px; height: 200px; object-fit: contain; margin: 10px auto; border: 5px solid white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .summary-bar { text-align:center; background: #fff0f3; border: 2px dashed var(--pink); border-radius: 15px; padding: 10px; margin: 10px 0; }
 
-        /* หน้าต่างแจ้งเตือนส่งออเดอร์สำเร็จ */
         .success-modal {
             display: none; position: fixed; z-index: 2000; left: 0; top: 0; 
             width: 100%; height: 100%; background: rgba(0,0,0,0.8); 
@@ -74,12 +74,24 @@
 </div>
 
 <div class="card" style="border: 2px solid var(--cutter-color); background: #f0fdfa;">
-    <h2 style="color: var(--cutter-color);">✂️ เครื่องตัดริบบิ้น (125฿)</h2>
-    <div class="cutter-container">
-        <button id="cutterBtn" class="btn-order-cutter" onclick="toggleCutter()">สั่งเครื่องตัดริบบิ้น ✂️</button>
-        <label class="check-label">
-            <input type="checkbox" id="hasSwitch" onchange="calculateAutoPrice()"> ติดสวิตช์ (+20฿)
-        </label>
+    <h2 style="color: var(--cutter-color);">✂️ เครื่องตัดริบบิ้น</h2>
+    
+    <div class="cutter-row">
+        <div class="cutter-info">แบบปกติ<span class="cutter-price">125฿ / เครื่อง</span></div>
+        <div class="qty-control">
+            <button class="btn-qty" onclick="updateCutter('normal', -1)">-</button>
+            <span class="qty-val" id="qty-normal">0</span>
+            <button class="btn-qty" onclick="updateCutter('normal', 1)">+</button>
+        </div>
+    </div>
+
+    <div class="cutter-row">
+        <div class="cutter-info">แบบติดสวิตช์<span class="cutter-price">145฿ / เครื่อง</span></div>
+        <div class="qty-control">
+            <button class="btn-qty" onclick="updateCutter('switch', -1)">-</button>
+            <span class="qty-val" id="qty-switch">0</span>
+            <button class="btn-qty" onclick="updateCutter('switch', 1)">+</button>
+        </div>
     </div>
 </div>
 
@@ -135,19 +147,11 @@
     <div class="success-content">
         <h2>ส่งออเดอร์สำเร็จ! ✨</h2>
         <p>กรุณาส่งสติกเกอร์หรือข้อความทักทายเข้ามา<br><b>ในช่องทางที่คุณได้แจ้งชื่อไว้</b><br>เพื่อให้ทางร้านยืนยันออเดอร์นะคะ</p>
-        
         <div class="contact-group">
-            <a href="https://www.tiktok.com/@metist_flower.studio?_r=1&_t=ZS-94exSzzsyKv" class="btn-contact btn-tiktok" target="_blank">
-                💬 ทักทาง TikTok
-            </a>
-            <a href="https://lin.ee/DnFf6KZ" class="btn-contact btn-line" target="_blank">
-                🟢 ทักทาง LINE
-            </a>
+            <a href="https://www.tiktok.com/@metist_flower.studio?_r=1&_t=ZS-94exSzzsyKv" class="btn-contact btn-tiktok" target="_blank">💬 ทักทาง TikTok</a>
+            <a href="https://line.me/ti/p/~@663ofvnt" class="btn-contact btn-line" target="_blank">🟢 ทักทาง LINE</a>
         </div>
-        
-        <button onclick="location.reload()" style="margin-top: 25px; background: none; border: none; color: #aaa; text-decoration: underline; cursor: pointer; font-size: 13px;">
-            ปิดและกลับหน้าหลัก
-        </button>
+        <button onclick="location.reload()" style="margin-top: 25px; background: none; border: none; color: #aaa; text-decoration: underline; cursor: pointer; font-size: 13px;">ปิดและกลับหน้าหลัก</button>
     </div>
 </div>
 
@@ -164,7 +168,15 @@
     let selectedPapers = []; 
     let selectedBows = []; 
     let selectedExtras = {};
-    let isCutterSelected = false; 
+    
+    // ข้อมูลเครื่องตัดใหม่
+    let cutterQty = { normal: 0, switch: 0 };
+
+    function updateCutter(type, change) {
+        cutterQty[type] = Math.max(0, cutterQty[type] + change);
+        document.getElementById(`qty-${type}`).innerText = cutterQty[type];
+        calculateAutoPrice();
+    }
 
     function renderFlowers() {
         const flowerList = ["แดง", "ขาว", "ชมพู", "น้ำเงิน", "ม่วง"];
@@ -179,19 +191,6 @@
         const type = document.querySelector('input[name="flowerType"]:checked').value;
         currentFlowerData[type][color] = (currentFlowerData[type][color] || 0) + 1;
         renderFlowers(); calculateAutoPrice();
-    }
-
-    function toggleCutter() {
-        isCutterSelected = !isCutterSelected;
-        const btn = document.getElementById("cutterBtn");
-        if(isCutterSelected) {
-            btn.classList.add("selected");
-            btn.innerText = "เลือกเครื่องตัดแล้ว ✓";
-        } else {
-            btn.classList.remove("selected");
-            btn.innerText = "สั่งเครื่องตัดริบบิ้น ✂️";
-        }
-        calculateAutoPrice();
     }
 
     function calculateAutoPrice() {
@@ -212,11 +211,8 @@
             extraTotal += (selectedExtras[e] * p);
         });
 
-        let cutterTotal = 0;
-        if(isCutterSelected) {
-            const hasSw = document.getElementById("hasSwitch").checked;
-            cutterTotal = 125 + (hasSw ? 20 : 0);
-        }
+        // คำนวณราคาเครื่องตัด
+        let cutterTotal = (cutterQty.normal * 125) + (cutterQty.switch * 145);
 
         const finalTotal = flowerPrice + extraTotal + cutterTotal;
         document.getElementById("summary-text").innerHTML = `<b>ยอดรวมทั้งหมด: ${finalTotal} ฿</b>`;
@@ -261,9 +257,8 @@
 
             const orderDetails = {
                 address: address,
-                isCutter: isCutterSelected,
-                qty: isCutterSelected ? 1 : 0,
-                hasSwitch: document.getElementById("hasSwitch").checked,
+                cutterNormal: cutterQty.normal,
+                cutterSwitch: cutterQty.switch,
                 flowers: currentFlowerData,
                 paper: selectedPapers.join(", "),
                 bow: selectedBows.join(", "),
@@ -280,8 +275,6 @@
             }]);
 
             if (insertError) throw insertError;
-
-            // แสดงหน้าต่างแจ้งเตือนสำเร็จ
             document.getElementById("successModal").style.display = "flex";
             btn.innerText = "ส่งออเดอร์สำเร็จแล้ว ✨";
 
