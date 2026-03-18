@@ -53,6 +53,18 @@
         .delivery-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; border-bottom: 1px dashed #fce4ec; padding-bottom: 3px; }
         .delivery-label { font-weight: bold; color: #5a3d45; }
         .delivery-days { color: var(--pink-dark); font-weight: 800; }
+
+        /* --- ส่วนที่เพิ่มใหม่สำหรับ Price List & Menu --- */
+        .image-gallery { display: flex; gap: 10px; margin-bottom: 15px; }
+        .img-item { flex: 1; text-align: center; }
+        .img-thumb { width: 100%; border-radius: 12px; border: 1px solid #f2cbd3; cursor: pointer; transition: 0.3s; }
+        .img-thumb:hover { opacity: 0.8; }
+        .btn-zoom { background: var(--pink-dark); color: white; border: none; border-radius: 8px; padding: 5px; width: 100%; margin-top: 5px; font-size: 11px; cursor: pointer; }
+        
+        /* Modal สำหรับดูรูปใหญ่ */
+        .img-modal { display: none; position: fixed; z-index: 3000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        .img-modal img { max-width: 95%; max-height: 90%; border-radius: 10px; }
+        .close-modal { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -97,6 +109,17 @@
             <span class="qty-num" id="qtySwitch">0</span>
             <button class="btn-qty" onclick="changeCutterQty('switch', 1)">+</button>
         </div>
+    </div>
+</div>
+
+<div class="image-gallery">
+    <div class="img-item">
+        <img src="Price.jpg" class="img-thumb" onclick="openFullImg('Price.jpg')">
+        <button class="btn-zoom" onclick="openFullImg('Price.jpg')">🔍 ดูราคา</button>
+    </div>
+    <div class="img-item">
+        <img src="Menu.jpg" class="img-thumb" onclick="openFullImg('Menu.JPG')">
+        <button class="btn-zoom" onclick="openFullImg('Menu.JPG')">🔍 ดูเมนู</button>
     </div>
 </div>
 
@@ -174,7 +197,18 @@
     </div>
 </div>
 
+<div id="fullImgModal" class="img-modal" onclick="this.style.display='none'">
+    <span class="close-modal">&times;</span>
+    <img id="fullImg" src="">
+</div>
+
 <script>
+    // ฟังก์ชันใหม่สำหรับเปิดรูปขยายใหญ่
+    function openFullImg(src) {
+        document.getElementById("fullImg").src = src;
+        document.getElementById("fullImgModal").style.display = "flex";
+    }
+
     const SUPABASE_URL = 'https://hcxegxzyaeckcfybqmuw.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjeGVneHp5YWVja2NmeWJxbXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Njk2NDAsImV4cCI6MjA4ODM0NTY0MH0.V24YgTlKrFL9LpzUFI8O9beRA9olxW-LYvsaMaVuO4w';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -188,7 +222,6 @@
     let selectedBows = []; 
     let selectedExtras = {};
     
-    // ตัวแปรเก็บจำนวนเครื่องตัดแยกประเภท
     let cutter = { normal: 0, switch: 0 };
 
     function changeCutterQty(type, val) {
@@ -230,7 +263,6 @@
             extraTotal += (selectedExtras[e] * p);
         });
 
-        // คำนวณราคาเครื่องตัดแบบแยกประเภทแล้วบวกกัน
         let cutterTotal = (cutter.normal * 125) + (cutter.switch * 145);
 
         const finalTotal = flowerPrice + extraTotal + cutterTotal;
@@ -274,7 +306,6 @@
 
             btn.innerText = "กำลังส่งออเดอร์...";
 
-            // ส่งข้อมูลกลับไปที่ Admin ให้ระบุชัดเจนว่ามีกี่เครื่อง
             const orderDetails = {
                 address: address,
                 isCutter: (cutter.normal + cutter.switch) > 0, 
