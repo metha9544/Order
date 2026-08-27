@@ -346,5 +346,6 @@
     document.getElementById("extra-grid").innerHTML = Object.keys(extraPriceDefault).map(e => `<button class="square-btn" style="background:#f2b5d4; color:#5a3d45;" onclick="selectedExtras['${e}']=(selectedExtras['${e}']||0)+1; calculateAutoPrice(); document.getElementById('extraChoice').innerText='เลือก: '+Object.keys(selectedExtras).filter(k=>selectedExtras[k]>0).map(k=>k+'x'+selectedExtras[k]).join(', ');">${e}</button>`).join("");
 </script>
 <script src="order-ui-v2.js"></script>
+<script src="phase4-shared-catalog.js"></script>
 </body>
 </html>
